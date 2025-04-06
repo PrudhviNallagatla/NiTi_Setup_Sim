@@ -1,0 +1,33 @@
+2025-04-06 22:38:27,196 - NiTi-Dashboard - INFO - Setting up Cloudflare Tunnel for remote access...
+2025-04-06 22:38:37,234 - NiTi-Dashboard - INFO - Cloudflare Tunnel URL: https://rod-profession-landscape-dakota.trycloudflare.com
+2025-04-06 22:38:37,342 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:38:37,342 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:38:46,086 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:38:46] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:38:46,724 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:38:46] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:38:47,808 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:38:47] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-06 22:43:18,621 - NiTi-Dashboard - INFO - Setting up Cloudflare Tunnel for remote access...
+2025-04-06 22:43:28,663 - NiTi-Dashboard - INFO - Cloudflare Tunnel URL: https://iran-equally-administrators-postal.trycloudflare.com
+2025-04-06 22:43:28,767 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:43:28,768 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:43:34,402 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:34] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:43:34,532 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:34] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:43:48,132 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:48] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2025-04-06 22:43:48,418 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:48] "GET / HTTP/1.1" 200 -
+2025-04-06 22:43:48,775 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:48] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:43:49,317 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:49] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:43:54,775 - NiTi-Dashboard - ERROR - Error launching pipeline: [Errno 8] Exec format error: '/home/rimuru/workspace/setup_sim/src/pipeline.sh'
+2025-04-06 22:43:54,777 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:54] "POST /api/launch HTTP/1.1" 200 -
+2025-04-06 22:43:55,301 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:55] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:43:55,559 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:55] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:43:58,435 - NiTi-Dashboard - ERROR - Error launching pipeline: [Errno 8] Exec format error: '/home/rimuru/workspace/setup_sim/src/pipeline.sh'
+2025-04-06 22:43:58,436 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:58] "POST /api/launch HTTP/1.1" 200 -
+2025-04-06 22:43:58,775 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:58] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:43:58,961 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:43:58] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:44:19,901 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:44:19] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-04-06 22:44:20,189 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:44:20] "GET /login HTTP/1.1" 200 -

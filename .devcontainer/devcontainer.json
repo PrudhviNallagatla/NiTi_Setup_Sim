@@ -5,7 +5,7 @@
     "context": ".."
   },
   "runArgs": ["--gpus=all", "--ipc=host", "--shm-size=1g"],
-  "forwardPorts": [8888, 8080, 8000],
+  "forwardPorts": [8888, 8080, 8000, 8087],
   "customizations": {
     "vscode": {
       "extensions": [

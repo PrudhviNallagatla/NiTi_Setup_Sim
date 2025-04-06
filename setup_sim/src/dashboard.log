@@ -1,0 +1,250 @@
+2025-04-06 22:08:21,704 - NiTi-Dashboard - INFO - Installing ngrok for remote access...
+2025-04-06 22:08:43,692 - NiTi-Dashboard - INFO - Starting ngrok tunnel for remote access...
+2025-04-06 22:08:46,707 - NiTi-Dashboard - ERROR - Failed to get ngrok URL: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd0f87f2740>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:08:46,717 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:08:46,717 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:08:53,458 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:08:53] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:08:53,770 - dashboard - ERROR - Exception on /login [GET]
+Traceback (most recent call last):
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/rimuru/workspace/setup_sim/src/dashboard.py", line 371, in login
+    return render_template('login.html')
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: login.html
+2025-04-06 22:08:53,789 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:08:53] "[35m[1mGET /login?next=/ HTTP/1.1[0m" 500 -
+2025-04-06 22:08:54,113 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:08:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-06 22:09:15,168 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:09:15] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:09:15,493 - dashboard - ERROR - Exception on /login [GET]
+Traceback (most recent call last):
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/rimuru/workspace/setup_sim/src/dashboard.py", line 371, in login
+    return render_template('login.html')
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/usr/local/lib/python3.10/dist-packages/jinja2/loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "/home/rimuru/.local/lib/python3.10/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: login.html
+2025-04-06 22:09:15,503 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:09:15] "[35m[1mGET /login?next=/ HTTP/1.1[0m" 500 -
+2025-04-06 22:10:45,635 - NiTi-Dashboard - INFO - Starting ngrok tunnel for remote access...
+2025-04-06 22:10:48,643 - NiTi-Dashboard - ERROR - Failed to get ngrok URL: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f74412ba680>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:10:48,651 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:10:48,652 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:10:54,528 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:10:54] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:10:54,808 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:10:54] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:11:08,155 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:08] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2025-04-06 22:11:08,548 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:08] "GET / HTTP/1.1" 200 -
+2025-04-06 22:11:08,922 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:08] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:11:09,452 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:09] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:11:24,509 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:24] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-04-06 22:11:24,799 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:24] "GET /login HTTP/1.1" 200 -
+2025-04-06 22:11:43,237 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:43] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:11:43,433 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:11:43] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:12:09,913 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:09] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2025-04-06 22:12:10,171 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:10] "GET / HTTP/1.1" 200 -
+2025-04-06 22:12:10,534 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:10] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:12:11,055 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:11] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:12:41,697 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:41] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:12:41,976 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:12:41] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:13:11,673 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:13:11] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:13:11,937 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:13:11] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:13:41,688 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:13:41] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:13:41,935 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:13:41] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:14:13,466 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:14:13,466 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:14:18,619 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:14:18] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:14:19,207 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:14:19] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:16:51,227 - NiTi-Dashboard - INFO - Starting ngrok tunnel for remote access...
+2025-04-06 22:16:54,236 - NiTi-Dashboard - WARNING - Failed to get ngrok URL on attempt 1: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f164b26ef80>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:16:56,242 - NiTi-Dashboard - WARNING - Failed to get ngrok URL on attempt 2: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f164b26f8b0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:16:58,246 - NiTi-Dashboard - WARNING - Failed to get ngrok URL on attempt 3: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f164b26ed10>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:17:00,249 - NiTi-Dashboard - WARNING - Failed to get ngrok URL on attempt 4: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f164b2b01c0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:17:02,255 - NiTi-Dashboard - WARNING - Failed to get ngrok URL on attempt 5: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f164b2b0a90>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:17:04,258 - NiTi-Dashboard - ERROR - Failed to get ngrok URL after 5 attempts
+2025-04-06 22:17:04,274 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:17:04,275 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:17:16,190 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:17:16] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:17:16,767 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:17:16] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:17:17,183 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:17:17] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-06 22:22:52,289 - NiTi-Dashboard - INFO - Setting up ngrok for remote access...
+2025-04-06 22:22:53,321 - NiTi-Dashboard - INFO - Starting ngrok tunnel on port 8087...
+2025-04-06 22:22:58,330 - NiTi-Dashboard - WARNING - Attempt 1 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f4b83e2af80>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:23:00,335 - NiTi-Dashboard - WARNING - Attempt 2 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f4b83e2b8b0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:23:02,338 - NiTi-Dashboard - WARNING - Attempt 3 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f4b83e2aa10>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:23:04,343 - NiTi-Dashboard - WARNING - Attempt 4 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f4b83e6c1c0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:23:06,349 - NiTi-Dashboard - WARNING - Attempt 5 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f4b83e6ca90>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:23:08,351 - NiTi-Dashboard - ERROR - Failed to get ngrok URL after 5 attempts
+2025-04-06 22:23:08,352 - NiTi-Dashboard - INFO - Ngrok stdout: t=2025-04-06T22:22:53+0530 lvl=info msg="no configuration paths supplied"
+t=2025-04-06T22:22:53+0530 lvl=info msg="ignoring default config path, could not stat it" path=/home/rimuru/.config/ngrok/ngrok.yml
+t=2025-04-06T22:22:53+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2025-04-06T22:22:53+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:22:53+0530 lvl=eror msg="session closing" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:22:53+0530 lvl=info msg="received stop request" obj=app stopReq="{err:{Remote:true Inner:{Inner:0xc000700a40}} restart:false}"
+t=2025-04-06T22:22:53+0530 lvl=eror msg="terminating with error" obj=app err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:22:53+0530 lvl=warn msg="failed to check for update" obj=updater err="Post \"https://update.equinox.io/check\": context canceled"
+t=2025-04-06T22:22:53+0530 lvl=crit msg="command failed" err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+
+2025-04-06 22:23:08,354 - NiTi-Dashboard - INFO - Ngrok stderr: ERROR:  authentication failed: Usage of ngrok requires a verified account and authtoken.
+ERROR:  
+ERROR:  Sign up for an account: https://dashboard.ngrok.com/signup
+ERROR:  Install your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken
+ERROR:  
+ERROR:  ERR_NGROK_4018
+ERROR:  https://ngrok.com/docs/errors/err_ngrok_4018
+ERROR:  
+
+2025-04-06 22:23:08,368 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:23:08,369 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:24:41,674 - NiTi-Dashboard - INFO - Setting up ngrok for remote access...
+2025-04-06 22:24:42,698 - NiTi-Dashboard - INFO - Starting ngrok tunnel on port 8087...
+2025-04-06 22:24:47,707 - NiTi-Dashboard - WARNING - Attempt 1 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7feddb60b3d0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:24:49,714 - NiTi-Dashboard - WARNING - Attempt 2 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7feddb60bd00>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:24:51,720 - NiTi-Dashboard - WARNING - Attempt 3 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7feddb64c610>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:24:53,726 - NiTi-Dashboard - WARNING - Attempt 4 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7feddb60b7c0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:24:55,733 - NiTi-Dashboard - WARNING - Attempt 5 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7feddb60ab90>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:24:57,736 - NiTi-Dashboard - ERROR - Failed to get ngrok URL after 5 attempts
+2025-04-06 22:24:57,737 - NiTi-Dashboard - INFO - Ngrok stdout: t=2025-04-06T22:24:42+0530 lvl=info msg="no configuration paths supplied"
+t=2025-04-06T22:24:42+0530 lvl=info msg="ignoring default config path, could not stat it" path=/home/rimuru/.config/ngrok/ngrok.yml
+t=2025-04-06T22:24:42+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2025-04-06T22:24:43+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:24:43+0530 lvl=eror msg="session closing" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:24:43+0530 lvl=info msg="received stop request" obj=app stopReq="{err:{Remote:true Inner:{Inner:0xc000186f20}} restart:false}"
+t=2025-04-06T22:24:43+0530 lvl=eror msg="terminating with error" obj=app err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:24:43+0530 lvl=crit msg="command failed" err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:24:43+0530 lvl=warn msg="failed to check for update" obj=updater err="Post \"https://update.equinox.io/check\": context canceled"
+
+2025-04-06 22:24:57,738 - NiTi-Dashboard - INFO - Ngrok stderr: ERROR:  authentication failed: Usage of ngrok requires a verified account and authtoken.
+ERROR:  
+ERROR:  Sign up for an account: https://dashboard.ngrok.com/signup
+ERROR:  Install your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken
+ERROR:  
+ERROR:  ERR_NGROK_4018
+ERROR:  https://ngrok.com/docs/errors/err_ngrok_4018
+ERROR:  
+
+2025-04-06 22:24:57,753 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:24:57,754 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:25:11,959 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:11] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:25:12,177 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:12] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:25:29,045 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:29] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2025-04-06 22:25:29,310 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:29] "GET / HTTP/1.1" 200 -
+2025-04-06 22:25:29,645 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:29] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:25:30,196 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:30] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:25:49,737 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:49] "GET / HTTP/1.1" 200 -
+2025-04-06 22:25:50,095 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:50] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:25:50,582 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:50] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:25:51,783 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:51] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-04-06 22:25:52,359 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:25:52] "GET /login HTTP/1.1" 200 -
+2025-04-06 22:31:27,502 - NiTi-Dashboard - INFO - Setting up ngrok for remote access...
+2025-04-06 22:31:28,522 - NiTi-Dashboard - INFO - Starting ngrok tunnel on port 8087...
+2025-04-06 22:31:33,531 - NiTi-Dashboard - WARNING - Attempt 1 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ffa478fe560>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:31:35,535 - NiTi-Dashboard - WARNING - Attempt 2 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ffa478fee90>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:31:37,539 - NiTi-Dashboard - WARNING - Attempt 3 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ffa478ff760>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:31:39,544 - NiTi-Dashboard - WARNING - Attempt 4 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ffa478ff730>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:31:41,611 - NiTi-Dashboard - WARNING - Attempt 5 failed: HTTPConnectionPool(host='localhost', port=4040): Max retries exceeded with url: /api/tunnels (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ffa478fee60>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-04-06 22:31:43,615 - NiTi-Dashboard - ERROR - Failed to get ngrok URL after 5 attempts
+2025-04-06 22:31:43,617 - NiTi-Dashboard - INFO - Ngrok stdout: t=2025-04-06T22:31:28+0530 lvl=info msg="no configuration paths supplied"
+t=2025-04-06T22:31:28+0530 lvl=info msg="ignoring default config path, could not stat it" path=/home/rimuru/.config/ngrok/ngrok.yml
+t=2025-04-06T22:31:28+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2025-04-06T22:31:28+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:31:28+0530 lvl=eror msg="session closing" obj=tunnels.session err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:31:28+0530 lvl=info msg="received stop request" obj=app stopReq="{err:{Remote:true Inner:{Inner:0xc000119260}} restart:false}"
+t=2025-04-06T22:31:28+0530 lvl=eror msg="terminating with error" obj=app err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:31:28+0530 lvl=warn msg="failed to check for update" obj=updater err="Post \"https://update.equinox.io/check\": context canceled"
+t=2025-04-06T22:31:28+0530 lvl=crit msg="command failed" err="authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n"
+t=2025-04-06T22:31:28+0530 lvl=info msg="no more state changes" obj=tunnels.session
+
+2025-04-06 22:31:43,618 - NiTi-Dashboard - INFO - Ngrok stderr: ERROR:  authentication failed: Usage of ngrok requires a verified account and authtoken.
+ERROR:  
+ERROR:  Sign up for an account: https://dashboard.ngrok.com/signup
+ERROR:  Install your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken
+ERROR:  
+ERROR:  ERR_NGROK_4018
+ERROR:  https://ngrok.com/docs/errors/err_ngrok_4018
+ERROR:  
+
+2025-04-06 22:31:43,620 - NiTi-Dashboard - INFO - Ngrok setup failed, trying Cloudflare Tunnel...
+2025-04-06 22:31:43,621 - NiTi-Dashboard - INFO - Setting up Cloudflare Tunnel for remote access...
+2025-04-06 22:31:43,635 - NiTi-Dashboard - INFO - Installing cloudflared...
+2025-04-06 22:32:06,624 - NiTi-Dashboard - INFO - Cloudflared installed successfully
+2025-04-06 22:32:16,736 - NiTi-Dashboard - INFO - Cloudflare Tunnel URL: https://protect-conceptual-bl-comparing.trycloudflare.com
+2025-04-06 22:32:16,959 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8087
+ * Running on http://172.17.0.2:8087
+2025-04-06 22:32:16,960 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-06 22:32:42,592 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:42] "[32mGET /?key=DX7gRoRnJqdYpmUK5K2nRQ HTTP/1.1[0m" 302 -
+2025-04-06 22:32:43,324 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:43] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:32:44,121 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:44] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-06 22:32:50,962 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:50] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:32:51,291 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:51] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:32:51,908 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:51] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:32:52,287 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:52] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:32:53,125 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:32:53] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-06 22:33:37,387 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:37] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2025-04-06 22:33:37,532 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:37] "GET / HTTP/1.1" 200 -
+2025-04-06 22:33:38,750 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:38] "GET /api/status HTTP/1.1" 200 -
+2025-04-06 22:33:39,346 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:39] "GET /log/pipeline.log HTTP/1.1" 200 -
+2025-04-06 22:33:45,879 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:45] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:33:46,650 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:46] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:33:46,720 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:46] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:33:47,505 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:47] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:33:47,675 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:47] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:33:47,887 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:47] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-06 22:33:48,216 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:48] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:33:48,565 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:48] "GET /login?next=/ HTTP/1.1" 200 -
+2025-04-06 22:33:49,841 - werkzeug - INFO - 127.0.0.1 - - [06/Apr/2025 22:33:49] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

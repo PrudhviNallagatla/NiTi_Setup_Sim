@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for, session
 from flask_socketio import SocketIO
 import pandas as pd
@@ -59,7 +59,7 @@ def get_local_ip():
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'nitinol_nanoparticle_sim_' + secrets.token_hex(16)
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 socketio = SocketIO(app)
 
 # Global variables
@@ -76,60 +76,144 @@ remote_url = None
 # Ensure plot directory exists
 os.makedirs(PLOT_DIR, exist_ok=True)
 
-# Helper functions to set up remote access via ngrok
-def setup_ngrok():
+# Helper function to setup cloudflared tunnel
+def setup_cloudflared():
     global remote_url
 
-    # If a custom URL was provided, use it
-    if args.remote_url:
-        remote_url = args.remote_url
-        logger.info(f"Using custom remote URL: {remote_url}")
-        return True
-
     try:
-        # Check if ngrok is installed
-        ngrok_present = subprocess.run(["which", "ngrok"],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE).returncode == 0
-
-        if not ngrok_present:
-            logger.info("Installing ngrok for remote access...")
-            # Install ngrok
-            subprocess.run([
-                "bash", "-c",
-                "curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | " +
-                "sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && " +
-                "echo 'deb https://ngrok-agent.s3.amazonaws.com buster main' | " +
-                "sudo tee /etc/apt/sources.list.d/ngrok.list && " +
-                "sudo apt update && sudo apt install -y ngrok"
-            ], check=True)
-
-        # Start ngrok tunnel
-        logger.info("Starting ngrok tunnel for remote access...")
+        logger.info("Setting up Cloudflare Tunnel for remote access...")
         port = 8087
+
+        # Check if cloudflared is installed
+        cloudflared_present = subprocess.run(["which", "cloudflared"],
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE).returncode == 0
+
+        # Install cloudflared if not present
+        if not cloudflared_present:
+            logger.info("Installing cloudflared...")
+            subprocess.run([
+                "wget", "-q", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64",
+                "-O", "/tmp/cloudflared"
+            ])
+            subprocess.run(["chmod", "+x", "/tmp/cloudflared"])
+            subprocess.run(["sudo", "mv", "/tmp/cloudflared", "/usr/local/bin/cloudflared"])
+            logger.info("Cloudflared installed successfully")
+
+        # Kill any existing cloudflared processes
+        try:
+            subprocess.run(["pkill", "-f", "cloudflared"], stderr=subprocess.PIPE)
+            time.sleep(1)
+        except:
+            pass
+
+        # Start cloudflared tunnel
         process = subprocess.Popen(
-            ["ngrok", "http", str(port)],
+            ["cloudflared", "tunnel", "--url", f"http://localhost:{port}"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 
-        # Wait for ngrok to start up
-        time.sleep(3)
+        # Wait for the tunnel to establish
+        time.sleep(5)
 
-        # Get the public URL
-        try:
-            response = requests.get("http://localhost:4040/api/tunnels")
-            data = response.json()
-            remote_url = data["tunnels"][0]["public_url"]
-            logger.info(f"Remote access URL (base): {remote_url}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to get ngrok URL: {str(e)}")
-            return False
+        # Extract URL from the output
+        for i in range(15):  # Increased number of retries
+            if process.poll() is not None:
+                logger.error("Cloudflared process terminated unexpectedly")
+                return False
+
+            line = process.stderr.readline().decode('utf-8').strip()
+            if "https://" in line and ".trycloudflare.com" in line:
+                remote_url = line.split("https://")[1].split()[0]
+                if remote_url:
+                    remote_url = f"https://{remote_url}"
+                    logger.info(f"Cloudflare Tunnel URL: {remote_url}")
+                    return True
+
+            # Try again if we didn't find the URL
+            time.sleep(1)
+
+        logger.error("Failed to get Cloudflare Tunnel URL")
+        return False
 
     except Exception as e:
-        logger.error(f"Failed to set up remote access: {str(e)}")
+        logger.error(f"Error setting up Cloudflare Tunnel: {str(e)}")
         return False
+
+# Helper functions to set up remote access via serveo.net
+def setup_serveo():
+    global remote_url
+
+    try:
+        logger.info("Setting up serveo.net for remote access...")
+        port = 8087
+
+        # Kill any existing SSH processes for serveo
+        try:
+            subprocess.run(["pkill", "-f", "ssh -R"], stderr=subprocess.PIPE)
+            time.sleep(1)
+        except:
+            pass
+
+        # Generate a random subdomain for serveo
+        subdomain = f"niti-sim-{secrets.token_hex(4)}"
+
+        # Start SSH reverse tunnel with serveo.net
+        process = subprocess.Popen(
+            ["ssh", "-R", f"{subdomain}:80:localhost:{port}", "serveo.net"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        # Wait for the connection to establish
+        time.sleep(3)
+
+        # Try to get the output to find the URL
+        for i in range(10):
+            if process.poll() is not None:
+                logger.error("SSH process terminated unexpectedly")
+                return False
+
+            output, error = process.communicate(timeout=1)
+            output_str = output.decode('utf-8') if output else ""
+            error_str = error.decode('utf-8') if error else ""
+
+            # Look for URL in the output
+            if "Forwarding HTTP traffic from" in output_str:
+                url_match = output_str.split("Forwarding HTTP traffic from")[1].strip()
+                if "https://" in url_match:
+                    remote_url = url_match.split()[0]
+                    logger.info(f"Serveo remote URL: {remote_url}")
+                    return True
+
+            # Try again if we didn't find the URL
+            time.sleep(1)
+
+        logger.error("Failed to get serveo.net URL after multiple attempts")
+        return False
+
+    except Exception as e:
+        logger.error(f"Error setting up serveo: {str(e)}")
+        return False
+
+# Background update thread
+def background_updates():
+    """Background thread to periodically update plots and status"""
+    while True:
+        try:
+            # Update simulation status
+            status = get_simulation_status()
+
+            # Update last update time
+            last_update["time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            last_update["status"] = status
+
+            # Sleep for a while
+            time.sleep(60)  # Update every minute
+        except Exception as e:
+            logger.error(f"Error in background update thread: {str(e)}")
+            time.sleep(30)  # Sleep less on error
 
 # Helper function to generate a QR code for the access URL
 def generate_qr_code(url):
@@ -215,7 +299,7 @@ def create_plot(data, headers, title, filename):
 
         for plot_type in plot_types:
             col = plot_type['col']
-            if col in df.columns:
+            if (col in df.columns):
                 plt.figure(figsize=(10, 6))
                 plt.plot(df['Step'], df[col], color=plot_type['color'])
                 plt.xlabel('Step')
@@ -287,7 +371,7 @@ def get_simulation_status():
                         completed_phases += 1
                     else:
                         # Analyze the most recent log file
-                        latest_log = max(log_files, key=os.path.getmtime)
+                        latest_log = max(log_files, key(os.path.getmtime))
                         phase_info["current_log"] = os.path.basename(latest_log)
 
                         # Generate plots for the log file if needed
@@ -342,6 +426,7 @@ def get_simulation_status():
 # Routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         input_key = request.form.get('access_key', '')
         if hashlib.sha256(input_key.encode()).hexdigest() == KEY_HASH:
@@ -349,8 +434,64 @@ def login():
             session.permanent = True
             next_page = request.args.get('next', '/')
             return redirect(next_page)
-        return render_template('login.html', error="Invalid access key")
-    return render_template('login.html')
+        error = "Invalid access key"
+
+    return render_template_string("""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NiTi Simulation Dashboard - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            max-width: 400px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-floating {
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h2>NiTi Simulation</h2>
+            <p class="text-muted">Nanoparticle Monitoring</p>
+        </div>
+        <form method="POST">
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="access_key" name="access_key" placeholder="Access Key">
+                <label for="access_key">Access Key</label>
+            </div>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+            <p class="mt-3 text-muted text-center">Enter the secure access key provided.</p>
+        </form>
+    </div>
+</body>
+</html>""", error=error)
 
 @app.route('/logout')
 def logout():
@@ -850,6 +991,25 @@ def get_dashboard_url():
 def render_login_template():
     return render_template('login.html')
 
+# Print SSH tunneling instructions for remote access
+def print_ssh_tunneling_instructions():
+    ip = get_local_ip()
+    port = 8087
+
+    print("\n" + "="*70)
+    print("REMOTE ACCESS USING SSH TUNNELING")
+    print("="*70)
+    print("Since ngrok setup failed, you can use SSH tunneling for remote access.")
+    print("\nFrom your local machine, run this command:")
+    print(f"ssh -L 8087:localhost:8087 your-username@your-server-ip")
+    print("\nThen access the dashboard at:")
+    print("http://localhost:8087")
+    print("\nAlternatively, if you have a server with a public IP, run:")
+    print(f"ssh -R 8087:localhost:8087 your-username@your-server-ip")
+    print("\nThen access the dashboard from:")
+    print("http://your-server-ip:8087")
+    print("="*70 + "\n")
+
 # Main function
 if __name__ == '__main__':
     # Setup templates
@@ -857,8 +1017,16 @@ if __name__ == '__main__':
     app.jinja_env.globals.update(render_template=render_template_string)
 
     # Setup remote access if enabled
+    remote_access_success = False
     if not args.local_only:
-        remote_access_success = setup_ngrok()
+        # Try Cloudflare Tunnel first (removed ngrok)
+        remote_access_success = setup_cloudflared()
+
+        # If cloudflared fails, try serveo
+        if not remote_access_success:
+            logger.info("Cloudflare Tunnel setup failed, trying serveo.net...")
+            remote_access_success = setup_serveo()
+
         if remote_access_success:
             secure_url = f"{remote_url}?key={ACCESS_KEY}"
             qr_code = generate_qr_code(secure_url)
@@ -877,12 +1045,25 @@ if __name__ == '__main__':
                 f.write(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
             print(f"Access details saved to: {os.path.join(DATA_DIR, 'dashboard_access.txt')}")
-            print("="*80 + "\n")
+
+            # Generate and display QR code in terminal if supported
+            try:
+                # Display ASCII QR code for the URL
+                print("\nScan this QR code with your mobile device:")
+                qr = qrcode.QRCode()
+                qr.add_data(secure_url)
+                qr.make()
+                qr.print_ascii(invert=True)
+                print("\n")
+            except:
+                pass
         else:
             print("\n" + "="*50)
             print(f"Remote access setup FAILED")
             print(f"Dashboard will only be available on your local network")
             print("="*50 + "\n")
+            # Print SSH tunneling instructions as an alternative
+            print_ssh_tunneling_instructions()
     else:
         print("\n" + "="*50)
         print(f"Running in local-only mode (no remote access)")
