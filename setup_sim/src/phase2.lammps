@@ -1,0 +1,146 @@
+#----------------------------------------------------------------------------------
+# PHASE 2: SPARK ABLATION
+# - Read restart from equilibration
+# - Apply localized energy input (spark)
+# - Monitor temperature and phase changes
+#----------------------------------------------------------------------------------
+
+# Read restart file from Phase 1
+read_restart    ../scripts/equil.restart
+
+# Reset timestep counter
+reset_timestep  0
+
+# Define variables for energy input
+variable        spark_temp equal 6000.0       # Target temperature for spark region (K)
+variable        pulse_duration equal 5.0      # Duration of energy pulse (ps)
+variable        cooling_duration equal 20.0   # Duration of cooling between pulses (ps)
+variable        num_pulses equal 3            # Number of energy pulses
+variable        dt equal 0.0005               # Smaller timestep for better stability during ablation
+
+# Variables for Gaussian energy distribution
+variable        spark_radius equal 5.0        # Radius of spark region
+variable        spark_center_x equal (xhi+xlo)/2
+variable        spark_center_y equal (yhi+ylo)/2
+variable        spark_peak_z equal zhi        # Top surface of the workpiece
+
+# Define/redefine spark region with Gaussian profile
+region          spark_region cylinder z ${spark_center_x} ${spark_center_y} ${spark_radius} ${spark_peak_z} ${spark_peak_z} side in
+group           spark_atoms dynamic all region spark_region every 100
+
+# Identify nitinol and water groups
+group           nitinol type 1 2
+group           water type 3 4
+
+# Ensure proper pair styles are loaded from restart
+# If not already defined, uncomment and add appropriate pair styles here
+
+# Compute properties for monitoring
+compute         ke all ke/atom
+compute         pe all pe/atom
+compute         temp all temp
+compute         temp_nitinol nitinol temp
+compute         temp_spark spark_atoms temp
+compute         coord all coord/atom cutoff 3.5
+compute         chunk_z all chunk/atom bin/1d z lower 1.0 units reduced
+compute         temp_profile all temp/chunk chunk_z
+fix             temp_chunk all ave/chunk 1000 1 1000 chunk_z temp file temp_profile_ablation.dat
+
+# Phase identification based on local temperature and coordination
+compute         atomtype all property/atom type
+variable        phase atom "c_coord < 4 ? 3 : (c_ke/1.5/8.617e-5 > 1700 ? 2 : 1)"
+# Phase: 1=solid, 2=liquid/melt, 3=vapor/ejected
+
+# Output settings
+thermo          100
+thermo_style    custom step temp c_temp_nitinol c_temp_spark press pe ke etotal
+thermo_modify   flush yes
+
+# Ablation monitoring
+dump            ablation all custom 500 dump.phase2.ablation.*.lammpstrj id type x y z vx vy vz c_ke c_pe v_phase
+dump_modify     ablation sort id
+
+# Setup for high-resolution data during critical events
+variable        high_res_trigger equal "c_temp_spark > 2000"
+fix             temp_monitor all print 100 "${high_res_trigger}" screen no file trigger_ablation.txt
+fix             high_res_data all ave/time 100 5 500 v_high_res_trigger c_temp_spark ave running file high_res_data.txt
+
+# Initialize dynamic dump for ejected particles
+group           ejected dynamic all var v_phase every 100
+variable        dump_ejected equal "count(ejected) > 0"
+
+# Dynamic monitoring of ejected material
+fix             eject_monitor all print 100 "${dump_ejected}" screen no
+dump            ejected_atoms ejected custom 100 dump.phase2.ejected.*.lammpstrj id type x y z vx vy vz c_ke c_pe v_phase
+dump_modify     ejected_atoms sort id
+
+# Implement multiple energy pulses with cooling periods
+timestep        ${dt}
+
+# First save the current state before ablation
+write_data      pre_ablation.data
+
+# Pulse application loop
+label           pulse_loop
+
+  variable       p loop ${num_pulses}
+
+  # 1. Apply energy pulse
+  print          "Applying energy pulse ${p} of ${num_pulses}"
+  fix            heat spark_atoms heat 10 ${spark_temp} region spark_region
+
+  # Run for pulse duration
+  run            ${pulse_duration}/${dt}
+
+  # Remove heating fix
+  unfix          heat
+
+  # 2. Allow cooling period
+  print          "Cooling after pulse ${p}"
+  fix            1 all nvt temp 300 300 0.1  # Gentle temperature control away from spark region
+
+  # Run cooling period
+  run            ${cooling_duration}/${dt}
+
+  # Save intermediate state
+  write_restart  ablation_pulse_${p}.restart
+
+  # Proceed to next pulse
+  next           p
+
+  # If ejected particles exceed threshold, possibly break loop
+  if "${dump_ejected} > 0.25" then "jump SELF pulse_end"
+
+jump           SELF pulse_loop
+label          pulse_end
+
+# Allow system to evolve after final pulse
+print          "Final relaxation period after ablation"
+fix            final_relax all nvt temp 300 300 0.1
+run            20000
+
+# Gather statistics on ablated material
+compute        clusters ejected cluster/atom 3.0
+compute        cluster_stats ejected property/atom c_clusters
+fix            cluster_data ejected ave/atom 1000 1 1000 c_cluster_stats
+dump           clusters ejected custom 1000 dump.phase2.clusters.*.lammpstrj id type x y z c_clusters
+
+# Run additional time to observe initial nanoparticle formation
+run            10000
+
+# Write final state for Phase 3
+write_restart  ablation_final.restart
+
+# Generate statistics report
+variable       num_ejected equal "count(ejected)"
+variable       avg_temp_ejected equal "c_temp_spark"
+print          "===== PHASE 2 ABLATION SUMMARY ====="
+print          "Number of ejected atoms: ${num_ejected}"
+print          "Average temperature of spark region: ${avg_temp_ejected} K"
+print          "Final temperature of full system: $(temp) K"
+print          "===== PHASE 2 COMPLETE ====="
+
+# Clean up
+undump         ablation
+undump         ejected_atoms
+undump         clusters

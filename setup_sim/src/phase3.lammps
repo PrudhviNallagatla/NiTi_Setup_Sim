@@ -1,0 +1,130 @@
+#----------------------------------------------------------------------------------
+# PHASE 3: NANOPARTICLE FORMATION
+# - Read restart from ablation phase
+# - Allow system to cool naturally
+# - Monitor particle nucleation and growth
+# - Track aggregation and stabilization
+#----------------------------------------------------------------------------------
+
+# Read the final state from Phase 2
+read_restart    ../scripts/ablation_final.restart
+
+# Reset timestep counter
+reset_timestep  0
+
+# Define variables for cooling and clustering
+variable        final_temp equal 300.0       # Target final temperature (K)
+variable        cooling_rate equal 0.1       # Cooling rate (K/ps)
+variable        dt equal 0.001               # Timestep (ps) - larger than ablation phase
+variable        cluster_cutoff equal 3.2     # Cutoff distance for cluster identification (Å)
+variable        run_time equal 500           # Total simulation time (ps)
+variable        dump_freq equal 1000         # Frequency for trajectory dumps
+
+# Redefine groups based on current state
+group           nitinol type 1 2
+group           water type 3 4
+
+# Identify ejected particles from previous phase
+compute         coord all coord/atom cutoff ${cluster_cutoff}
+variable        ejected atom "(type == 1 || type == 2) && c_coord < 8"
+group           ejected dynamic all var v_ejected every 100
+
+# Compute properties for monitoring
+compute         ke all ke/atom
+compute         pe all pe/atom
+compute         temp all temp
+compute         temp_ejected ejected temp
+compute         temp_water water temp
+
+# Cluster identification and tracking
+compute         clusters ejected cluster/atom ${cluster_cutoff}
+compute         cluster_size ejected chunk/atom c_clusters compress yes
+compute         cluster_stats ejected reduce sum v_ejected by c_clusters
+
+# Surface properties and hydration analysis
+compute         rdf_niti_water ejected water rdf 100 ${cluster_cutoff} # NiTi-Water RDF
+fix             rdf_avg all ave/time 5000 1 5000 c_rdf_niti_water[*] file rdf_niti_water.dat mode vector
+
+# Morphology and shape analysis
+compute         gyration ejected gyration/cluster c_clusters
+fix             gyration_avg all ave/time 5000 1 5000 c_gyration file gyration.dat
+
+# Composition analysis
+group           ni type 1
+group           ti type 2
+variable        ni_count atom "type == 1"
+variable        ti_count atom "type == 2"
+compute         comp_chunk ejected chunk/atom c_clusters compress yes
+fix             comp_analysis ejected ave/chunk 5000 1 5000 comp_chunk v_ni_count v_ti_count file composition.dat
+
+# 3.1 COOLING DYNAMICS
+
+# Implement gradual cooling
+fix             cooling all nvt temp 2000 ${final_temp} $(100.0*${dt}) # Controlled cooling
+
+# Track temperature gradient
+compute         chunk_z all chunk/atom bin/1d z lower 1.0 units reduced
+compute         temp_profile all temp/chunk chunk_z
+fix             temp_evolution all ave/chunk 5000 1 5000 chunk_z temp file temp_evolution.dat
+
+# 3.2-3.4 NUCLEATION, GROWTH, AND AGGREGATION MONITORING
+
+# High-resolution output
+thermo          100
+thermo_style    custom step temp c_temp_ejected c_temp_water press pe ke etotal count(ejected) c_clusters
+thermo_modify   flush yes
+
+# Dump trajectory data with phase and cluster information
+dump            formation all custom ${dump_freq} dump.phase3.formation.*.lammpstrj id type x y z vx vy vz c_ke c_pe c_clusters c_coord
+dump_modify     formation sort id
+
+# Create specialized dump for just the nanoparticles
+dump            particles ejected custom ${dump_freq} dump.phase3.particles.*.lammpstrj id type x y z c_clusters c_coord
+
+# Setup time-based data collection
+variable        t_elapsed equal "step*dt"
+fix             cluster_evolution all print 1000 "${t_elapsed} $(count(ejected)) $(c_temp_ejected) $(count(clusters))" &
+                screen no file cluster_evolution.dat title "# Time(ps) Ejected_Atoms Temp_Ejected Num_Clusters"
+
+# SIMULATION RUN
+
+# Run with incremental data collection
+label           cooling_loop
+
+  # Progress tracking
+  variable       time_remaining loop 10
+
+  # Run 10% of total simulation time
+  run            ${run_time}*100
+
+  # Save checkpoint
+  write_restart  phase3_checkpoint_${time_remaining}.restart
+
+  # Generate particle stats at this checkpoint
+  variable       num_clusters equal "count(clusters)"
+  fix            cluster_dist ejected print 1 "c_cluster_size" screen no file cluster_dist_${time_remaining}.dat title "# Cluster Size Distribution"
+  run            0
+  unfix          cluster_dist
+
+  # Status update
+  print          "Completed ${time_remaining}/10 of cooling simulation"
+
+  # Continue loop
+  next           time_remaining
+
+jump           SELF cooling_loop
+
+# Final analysis before ending
+print          "===== PHASE 3 NANOPARTICLE FORMATION SUMMARY ====="
+print          "Total number of ejected atoms: $(count(ejected))"
+print          "Final number of nanoparticle clusters: $(count(clusters))"
+print          "Final temperature: $(temp) K"
+print          "===== PHASE 3 COMPLETE ====="
+
+# Write final state for analysis phase
+write_restart  nanoparticle_final.restart
+write_data     nanoparticle_final.data
+
+# Clean up
+undump         formation
+undump         particles

@@ -1,0 +1,179 @@
+#----------------------------------------------------------------------------------
+# PHASE 1: INITIAL SETUP & EQUILIBRATION
+# - System definition and geometry
+# - Material properties and potentials
+# - Multi-stage equilibration
+#----------------------------------------------------------------------------------
+
+# Kokkos package activation
+package         kokkos newton on neigh half
+suffix          kk
+
+# Initialization
+units           metal        # Appropriate for metallic systems (distances in Å, time in ps)
+dimension       3            # 3D simulation
+boundary        p p f        # Periodic in x/y, fixed in z
+atom_style      hybrid/kk full  # Kokkos version for full atom style
+
+# File path variables
+variable        potential_path string "/home/rimuru/workspace/formation_sim/inputs/Ni-Ti.eam.fs"
+variable        water_mol_path string "/home/rimuru/workspace/formation_sim/inputs/H2O.mol"
+
+# Variables and constants
+variable        temp equal 300.0
+variable        press equal 1.0
+variable        dt equal 0.001
+variable        latconst equal 3.01
+# TESTING: Reduced system size
+variable        nx equal 5                # Original: 20
+variable        ny equal 5                # Original: 20
+variable        nz equal 3                # Original: 10
+variable        water_pad equal 6.0       # Original: 15.0
+variable        water_density equal 1.0
+
+# Calculate box dimensions
+variable        xlo equal 0.0
+variable        ylo equal 0.0
+variable        zlo equal 0.0
+variable        xhi equal ${nx}*${latconst}
+variable        yhi equal ${ny}*${latconst}
+variable        zhi equal ${nz}*${latconst}
+variable        xlo_water equal ${xlo}-${water_pad}
+variable        ylo_water equal ${ylo}-${water_pad}
+variable        zlo_water equal ${zlo}-${water_pad}
+variable        xhi_water equal ${xhi}+${water_pad}
+variable        yhi_water equal ${yhi}+${water_pad}
+variable        zhi_water equal ${zhi}+${water_pad}
+
+# Define simulation box
+region          box block ${xlo_water} ${xhi_water} ${ylo_water} ${yhi_water} ${zlo_water} ${zhi_water}
+create_box      3 box      # Type 1: Ni, Type 2: Ti, Type 3: Water (O and H will be types 3 and 4)
+
+# Create NiTi crystal
+region          nitinol block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi}
+lattice         bcc ${latconst}
+create_atoms    1 region nitinol
+
+# Convert alternating atoms to Ti (for B2 structure)
+group           ni type 1
+set             group ni type 1 fraction 0.5 123456
+group           ti type 1
+set             group ti type 2
+
+# Define spark targeting region
+variable        spark_radius equal 3.0    # Original: 5.0
+variable        spark_center_x equal (${xhi}+${xlo})/2
+variable        spark_center_y equal (${yhi}+${ylo})/2
+region          spark_region cylinder z ${spark_center_x} ${spark_center_y} ${spark_radius} ${zhi} ${zhi} side in
+group           spark_atoms region spark_region
+
+# Create water molecules
+region          water_region block ${xlo_water} ${xhi_water} ${ylo_water} ${yhi_water} ${zlo_water} ${zhi_water} side out
+molecule        h2o_mol ${water_mol_path}
+create_atoms    0 region water_region mol h2o_mol 45678 overlap 2.5  # Original: 2.0
+
+# Remove any water molecules that overlap with nitinol
+delete_atoms    overlap 2.5 nitinol water_region mol yes  # Original: 2.0
+
+# Define groups
+group           nitinol type 1 2
+group           water type 3 4
+
+# NiTi EAM/FS potential
+pair_style      eam/fs/kk
+pair_coeff      * * ${potential_path} Ni Ti
+
+# Water model (TIP3P) with Kokkos
+# TESTING: Smaller cutoffs
+pair_style      hybrid/kk eam/fs/kk lj/cut/coul/long/kk 8.0 8.0  # Original: 12.0 12.0
+pair_coeff      1 1 eam/fs/kk ${potential_path} Ni
+pair_coeff      2 2 eam/fs/kk ${potential_path} Ti
+pair_coeff      1 2 eam/fs/kk ${potential_path} Ni Ti
+pair_coeff      3 3 lj/cut/coul/long/kk 0.102 3.188
+pair_coeff      4 4 lj/cut/coul/long/kk 0.000 2.058
+pair_coeff      1 3 lj/cut/coul/long/kk 0.005 2.763
+pair_coeff      2 3 lj/cut/coul/long/kk 0.006 2.828
+pair_coeff      1 4 lj/cut/coul/long/kk 0.000 2.058
+pair_coeff      2 4 lj/cut/coul/long/kk 0.000 2.058
+
+# Long-range electrostatics
+kspace_style    pppm/kk 1.0e-3  # Original: 1.0e-4
+
+# Define water bonds and angles
+bond_style      harmonic/kk
+angle_style     harmonic/kk
+bond_coeff      1 450.0 0.9572   # O-H bond
+angle_coeff     1 55.0 104.52     # H-O-H angle
+
+# Set masses
+mass            1 58.6934     # Ni
+mass            2 47.867      # Ti
+mass            3 15.9994     # O
+mass            4 1.00794     # H
+
+# Initial velocities
+velocity        all create ${temp} 48249 rot yes dist gaussian
+
+# EQUILIBRATION PROTOCOL
+
+variable        outdir string "/home/rimuru/workspace/formation_sim/data/phase1"
+shell           "mkdir -p ${outdir}"
+
+# 1. Energy Minimization
+thermo          100
+minimize        1.0e-5 1.0e-6 1000 10000  # Original: 1.0e-6 1.0e-8 10000 100000
+reset_timestep  0
+
+# 2. Gradual heating to target temperature - updated fixes to use Kokkos
+fix             1 all nve/kk                   # NVE integration
+fix             2 all langevin/kk ${temp} ${temp} 0.1 123456  # Langevin thermostat
+timestep        ${dt}
+thermo          100  # Original: 1000
+thermo_style    custom step temp press pe ke etotal vol
+dump            1 all atom 500 ${outdir}/dump.phase1.test.heating.lammpstrj  # Original: 10000
+run             500  # Original: 50000
+undump          1
+
+# 3. NPT ensemble equilibration - updated fixes to use Kokkos
+unfix           1
+unfix           2
+fix             1 all npt/kk temp ${temp} ${temp} 0.1 iso ${press} ${press} 1.0
+dump            2 all atom 500 ${outdir}/dump.phase1.test.npt.lammpstrj  # Original: 10000
+run             1000  # Original: 100000
+undump          2
+
+# 4. NVT ensemble final stabilization - updated fixes to use Kokkos
+unfix           1
+fix             1 all nvt/kk temp ${temp} ${temp} 0.1
+dump            3 all custom 10000 ${outdir}/dump.phase1.nvt.lammpstrj id type x y z vx vy vz
+
+# Calculate additional properties for validation
+compute         rdf all rdf 25 1 1 1 2 2 2 1 2     # Original = 100
+fix             rdf_avg all ave/time 500 1 500 c_rdf[*] file ${outdir}/rdf.phase1.test.dat mode vector     # Original: 10000
+
+# Mean square displacement with reduced sampling for test
+compute         msd nitinol msd
+fix             msd_avg nitinol ave/time 500 1 500 c_msd[4] file ${outdir}/msd.phase1.test.dat     # Original: 10000
+
+# Temperature profile with reduced sampling for test
+compute         temp_profile all chunk/atom bin/1d z lower 1.0
+fix             temp_chunk all ave/chunk 500 1 500 temp_profile temp file ${outdir}/temp_profile.phase1.test.dat     # Original: 10000
+
+# Run final equilibration
+thermo_style    custom step temp press pe ke etotal vol density
+run             2000  # Original: 200000
+
+# Write restart file with path
+write_restart   ${outdir}/equil.restart
+
+# Validation report
+print "===== PHASE 1 VALIDATION METRICS ====="
+variable        final_temp equal temp
+variable        final_press equal press
+variable        final_pe equal pe
+variable        system_density equal density
+print "Final Temperature: ${final_temp} K"
+print "Final Pressure: ${final_press} bars"
+print "Potential Energy: ${final_pe} eV"
+print "System Density: ${system_density} g/cm^3"
+print "===== PHASE 1 COMPLETE ====="

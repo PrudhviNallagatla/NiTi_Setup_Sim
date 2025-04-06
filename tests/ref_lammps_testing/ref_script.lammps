@@ -1,0 +1,330 @@
+# LAMMPS input script for NiTi nanoparticle simulation
+# Using pre-generated structure from npgenerator
+# Composition: Ni50.0Ti50.0
+# Size: 1.0 nm
+
+# =================== INITIALIZATION ===================
+units           metal
+atom_style      atomic
+dimension       3
+boundary        p p p
+newton          on
+
+# Set global variables for easy parameter adjustment
+variable        temp_equil    equal 300.0     # Equilibration temperature
+variable        temp_max      equal 1200.0    # Maximum heating temperature
+variable        temp_diff     equal 800.0     # Diffusion analysis temperature
+variable        strain_rate1  equal 1e-5      # Standard strain rate
+variable        strain_rate2  equal 1e-4      # High strain rate
+variable        cyclic_rate   equal 5e-5      # Cyclic loading rate
+variable        dump_freq     equal 1000      # Standard trajectory dump frequency
+
+# Define variables for thermodynamic quantities used in fix ave/time commands
+variable        temp_var equal temp
+variable        press_var equal press
+variable        vol_var equal vol
+variable        pe_var equal pe
+variable        ke_var equal ke
+variable        etotal_var equal etotal
+variable        density_var equal density
+variable        step_var equal step   # ADD THIS FOR STEP VARIABLE
+
+# Create log file and directories
+shell           mkdir -p logs trajectories rdf_data defect_analysis phase_data
+log             logs/simulation.log
+
+
+# =================== ATOMIC SETUP ===================
+# Read structure from data file (created by Python script)
+read_data       /home/rimuru/workspace/tests/ref_lammps_testing/xyzdata_Ni50.0_Ti50.0_1.0nm.data
+
+# Define masses (already in data file, but ensure they're correct)
+mass            1 58.6934    # Ni
+mass            2 47.867     # Ti
+
+# Set simulation box
+region          box block 0 30 0 30 0 30
+
+# =================== FORCE FIELDS ===================
+# Potential settings
+pair_style      eam/fs/kk
+pair_coeff      * * ${potential_dir}/Ni-Ti.eam.fs Ni Ti
+
+# Improve performance with optimized neighbor settings
+neighbor        2.0 bin
+neigh_modify    delay 5 every 1 check yes page 500000 one 50000
+
+# =================== ATOM GROUPS ===================
+# Define atom groups for analysis
+group           Ni type 1
+group           Ti type 2
+
+# Surface atoms identification (outer 3 Angstroms)
+region          surface sphere 15 15 15 12
+region          core sphere 15 15 15 9
+group           surface_atoms region surface
+group           core_atoms region core
+
+# =================== ANALYSIS SETUP ===================
+# Define computes for structure and property analysis
+compute         pe all pe/atom
+compute         stress all stress/atom NULL
+compute         msd all msd com yes
+compute         coordination all coord/atom cutoff 3.5
+compute         stress_tensor all pressure NULL virial
+
+# =================== ENERGY MINIMIZATION ===================
+min_style       cg
+minimize        1e-06 1e-08 1000 10000
+print "Energy minimization complete" file logs/progress.txt
+
+# =================== VELOCITY INITIALIZATION ===================
+velocity        all create ${temp_equil} 12345 rot yes dist gaussian
+
+# =================== OUTPUT SETUP ===================
+# Create trajectory directory
+shell           mkdir -p trajectories
+
+# Enhanced output settings for multiple analysis formats
+# dump            dcd_traj all dcd ${dump_freq} trajectories/niti_trajectory.dcd
+dump            xyz_traj all xyz 5000 trajectories/niti_trajectory.xyz
+dump            custom all custom ${dump_freq} trajectories/niti_custom.lammpstrj id type x y z vx vy vz fx fy fz c_pe c_stress[1] c_stress[2] c_stress[3] c_coordination
+
+# Better real-time output
+thermo_style    custom step temp pe ke etotal press vol lx ly lz density c_msd[4]
+thermo          100
+thermo_modify   flush yes
+
+# =================== EQUILIBRATION ===================
+# Setup RDF calculation
+compute         rdf all rdf 100 1 1 1 2 2 2
+fix             rdf_output all ave/time 1000 1 1000 c_rdf[*] file rdf_data/rdf_equil.txt mode vector
+
+# Initial equilibration
+fix             nvt all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+log             logs/equilibration.log
+restart         5000 trajectories/restart_equil.*.lammps
+run             10000
+unfix           nvt
+unfix           rdf_output
+print "Equilibration complete" append logs/progress.txt
+
+# Undump active dump commands before resetting timestep
+undump          xyz_traj
+undump          custom
+
+# # =================== PHASE TRANSFORMATION ANALYSIS ===================
+# Reset timestep
+reset_timestep  0
+timestep        0.001
+
+# Setup for phase transformation analysis
+compute         chunk_analysis all chunk/atom bin/1d x lower 1.0 units reduced
+compute         phase_temp all temp/chunk chunk_analysis
+fix             phase_output all ave/chunk 100 10 1000 chunk_analysis c_pe c_stress[1] c_stress[2] c_stress[3] file phase_data/phase_profile.txt
+
+# Heating phase with enhanced monitoring
+fix             nvt_heat all nvt/kk temp ${temp_equil} ${temp_max} 0.1
+# Fixed temperature profile monitoring using variables
+fix             temp_profile all ave/time 1000 1 1000 v_temp_var v_press_var v_vol_var file phase_data/temp_profile_heating.txt
+fix             energy_monitor all ave/time 100 10 1000 v_pe_var v_ke_var v_etotal_var v_vol_var v_press_var file phase_data/energy_heating.txt
+
+# RDF tracking during heating
+compute         rdf_heat all rdf 100 1 1 1 2 2 2
+fix             rdf_track all ave/time 5000 1 5000 c_rdf_heat[*] file rdf_data/rdf_heating.txt mode vector
+
+dump            phase_transform all atom ${dump_freq} trajectories/phase_transform.lammpstrj
+log             logs/heating.log
+restart         10000 trajectories/restart_heat.*.lammps
+run             100000
+unfix           nvt_heat
+unfix           temp_profile
+unfix           energy_monitor
+unfix           rdf_track
+unfix           phase_output
+undump          phase_transform
+print "Heating phase complete" append logs/progress.txt
+
+# =================== COOLING PHASE ===================
+# Cooling phase with enhanced analysis
+fix             nvt_cool all langevin/kk ${temp_max} ${temp_equil} 0.1 12345 zero yes
+fix             int all nve/kk
+
+# Monitor phase transformation during cooling
+compute         chunk_cool all chunk/atom bin/1d x lower 1.0 units reduced
+compute         cool_temp all temp/chunk chunk_cool
+fix             cool_output all ave/chunk 100 10 1000 chunk_cool c_pe c_stress[1] c_stress[2] c_stress[3] file phase_data/cool_profile.txt
+
+# Hysteresis tracking using variables
+fix             hysteresis all ave/time 100 10 1000 v_pe_var v_ke_var v_etotal_var v_vol_var v_press_var v_temp_var file phase_data/hysteresis_data.txt
+
+# Structure evolution tracking
+compute         rdf_cool all rdf 100 1 1 1 2 2 2
+fix             rdf_track_cool all ave/time 5000 1 5000 c_rdf_cool[*] file rdf_data/rdf_cooling.txt mode vector
+
+# Surface vs core tracking
+compute         surface_temp surface_atoms temp
+compute         core_temp core_atoms temp
+fix             temp_region_monitor all ave/time 1000 1 1000 c_surface_temp c_core_temp file phase_data/surface_core_temp.txt
+
+log             logs/cooling.log
+restart         10000 trajectories/restart_cool.*.lammps
+run             100000
+unfix           nvt_cool
+unfix           int
+unfix           cool_output
+unfix           hysteresis
+unfix           rdf_track_cool
+unfix           temp_region_monitor
+print "Cooling phase complete" append logs/progress.txt
+
+# =================== MECHANICAL TESTING ===================
+# First deformation at standard rate
+variable        srate equal ${strain_rate1}
+fix             deform all deform/kk 1 x erate ${srate} units box remap v
+fix             nvt_deform all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+
+# Stress-strain monitoring - FIXED to use step_var
+fix             stress_strain all ave/time 100 1 100 v_step_var v_srate c_stress_tensor[1] c_stress_tensor[2] c_stress_tensor[3] c_stress_tensor[4] c_stress_tensor[5] c_stress_tensor[6] file phase_data/stress_strain_1e-5.txt
+
+# Local strain monitoring
+compute         strain all temp/partial 0 1 0
+fix             strain_monitor all ave/time 1000 1 1000 c_strain file phase_data/local_strain.txt
+
+dump            deform all atom ${dump_freq} trajectories/deform.lammpstrj
+log             logs/deformation.log
+restart         10000 trajectories/restart_deform1.*.lammps
+run             50000
+unfix           nvt_deform
+unfix           deform
+unfix           stress_strain
+unfix           strain_monitor
+undump          deform
+print "Standard deformation test complete" append logs/progress.txt
+
+# Higher strain rate test
+variable        srate equal ${strain_rate2}
+fix             deform2 all deform/kk 1 x erate ${srate} units box remap v
+fix             nvt_deform2 all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+
+# Stress-strain monitoring for second rate - FIXED to use step_var
+fix             stress_strain2 all ave/time 100 1 100 v_step_var v_srate c_stress_tensor[1] c_stress_tensor[2] c_stress_tensor[3] file phase_data/stress_strain_1e-4.txt
+
+dump            deform2 all atom ${dump_freq} trajectories/deform_fast.lammpstrj
+log             logs/deformation_fast.log
+run             5000
+unfix           nvt_deform2
+unfix           deform2
+unfix           stress_strain2
+undump          deform2
+print "High strain rate deformation test complete" append logs/progress.txt
+
+# =================== CYCLIC LOADING ===================
+# Cyclic loading for fatigue analysis
+variable        cycle loop 5
+label           cycle_start
+
+# Loading phase
+variable        srate equal ${cyclic_rate}
+fix             deform_cycle all deform/kk 1 x erate ${srate} units box remap v
+fix             nvt_cycle all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+# FIXED to use step_var
+fix             cycle_monitor all ave/time 100 1 100 v_step_var v_pe_var v_ke_var v_etotal_var v_press_var v_vol_var file phase_data/cycle_${cycle}_loading.txt
+run             5000
+unfix           deform_cycle
+unfix           nvt_cycle
+unfix           cycle_monitor
+
+# Unloading phase
+variable        srate equal -${cyclic_rate}
+fix             deform_release all deform/kk 1 x erate ${srate} units box remap v
+fix             nvt_release all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+# FIXED to use step_var
+fix             release_monitor all ave/time 100 1 100 v_step_var v_pe_var v_ke_var v_etotal_var v_press_var v_vol_var file phase_data/cycle_${cycle}_unloading.txt
+run             5000
+unfix           deform_release
+unfix           nvt_release
+unfix           release_monitor
+
+# Continue cycling
+next            cycle
+jump            SELF cycle_start
+# End cycling
+print "Cyclic loading tests complete" append logs/progress.txt
+
+# =================== PHONON ANALYSIS ===================
+# Phonon analysis via velocity autocorrelation
+fix             nve_phonon all nve/kk
+compute         vac all vacf 5 10
+fix             vac_output all ave/time 5 20 100 c_vac[1] c_vac[2] c_vac[3] file phase_data/vac_phonon.txt
+run             5000
+unfix           nve_phonon
+unfix           vac_output
+print "Phonon analysis complete" append logs/progress.txt
+
+# =================== DEFECT ANALYSIS ===================
+# Defect analysis
+compute         centro all centro/atom bcc
+compute         displacements all displace/atom
+dump            defect all custom ${dump_freq} defect_analysis/defects.dump id type x y z c_centro c_displacements[1] c_displacements[2] c_displacements[3] c_displacements[4]
+fix             nvt_defect all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+run             5000
+undump          defect
+unfix           nvt_defect
+print "Defect analysis complete" append logs/progress.txt
+
+# =================== INTERFACE ENERGY CALCULATION ===================
+# Interface energy calculation (requires pre-created interface)
+compute         eatom all pe/atom
+compute         layers all chunk/atom bin/1d z lower 0.5 units reduced
+fix             interface_energy all ave/chunk 10 100 1000 layers c_eatom file phase_data/interface_energy.txt
+run             1000
+unfix           interface_energy
+print "Interface energy calculation complete" append logs/progress.txt
+
+# =================== DIFFUSION ANALYSIS ===================
+# Diffusion coefficient calculation at elevated temperature
+fix             nvt_diffuse all nvt/kk temp ${temp_diff} ${temp_diff} 0.1
+compute         msd_diff all msd
+fix             diffusion all ave/time 100 1 100 c_msd_diff[1] c_msd_diff[2] c_msd_diff[3] c_msd_diff[4] file phase_data/diffusion_data.txt
+run             10000
+unfix           nvt_diffuse
+unfix           diffusion
+print "Diffusion analysis complete" append logs/progress.txt
+
+# =================== THERMAL PROPERTIES ===================
+# Final thermal properties
+fix             nvt_thermal all nvt/kk temp ${temp_equil} ${temp_equil} 0.1
+variable        tscale equal 1.0
+variable        eflux equal jz
+
+# Define required computes for heat flux calculation
+compute         ke_temp all ke/atom      # Already defined
+compute         pe_heat all pe/atom      # Add this line for potential energy
+# Fixed reference to stress compute - removed "c_" prefix
+compute         thermal_flux all heat/flux ke_temp pe_heat stress
+
+fix             thermal_cond all ave/time 1 1 1000 c_thermal_flux[1] c_thermal_flux[2] c_thermal_flux[3] file phase_data/thermal_conductivity.txt
+run             5000
+unfix           nvt_thermal
+unfix           thermal_cond
+print "Thermal conductivity analysis complete" append logs/progress.txt
+
+# =================== FINALIZATION ===================
+# Final dump and restart
+dump            dmp all atom ${dump_freq} trajectories/dump.lammpstrj
+log             logs/final.log
+restart         10000 trajectories/restart.*.lammps
+
+# Final structure
+write_data      final.data
+
+# Summary output for phase transformation characteristics
+print "Phase Transformation Analysis Complete" append phase_data/summary.txt
+print "See individual files for detailed analysis data" append phase_data/summary.txt
+print "Simulation finished successfully!" append logs/progress.txt
+
+# Performance statistics
+variable        sim_end equal time
+# Fix the variable syntax in the print command
+print "Total simulation time: ${sim_end} seconds" append phase_data/summary.txt

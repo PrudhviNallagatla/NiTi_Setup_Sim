@@ -1,0 +1,215 @@
+#----------------------------------------------------------------------------------
+# PHASE 4: ANALYSIS METHODS
+# - Structural characterization of formed nanoparticles
+# - Thermodynamic analysis of the formation process
+# - Data preparation for visualization and statistical analysis
+# - Comprehensive property calculations for final report
+#----------------------------------------------------------------------------------
+
+# Read the final state from Phase 3
+read_data      ../scripts/nanoparticle_final.data
+
+# Define variables for analysis
+variable       min_cluster_size equal 5           # Minimum atoms to consider as a nanoparticle
+variable       cluster_cutoff equal 3.2           # Primary cutoff for cluster identification (Å)
+variable       cluster_cutoff_2 equal 3.5         # Secondary cutoff for sensitivity analysis
+variable       rdf_bins equal 150                 # Number of bins for RDF calculations
+variable       voronoi_edge_length equal 0.5      # Edge length for Voronoi tessellation
+
+# Identify key atom groups
+group          nitinol type 1 2
+group          ni type 1
+group          ti type 2
+group          water type 3 4
+group          ejected type 1 2
+
+# -----------------------------------------------------------------------
+# 4.1 STRUCTURAL CHARACTERIZATION
+# -----------------------------------------------------------------------
+
+# Multi-method cluster identification
+compute        clusters ejected cluster/atom ${cluster_cutoff}
+compute        clusters2 ejected cluster/atom ${cluster_cutoff_2}   # Secondary method for sensitivity analysis
+compute        cluster_count ejected property/atom c_clusters
+compute        cluster_count2 ejected property/atom c_clusters2
+dump           cluster_compare ejected custom 1 dump.phase4.cluster_compare.lammpstrj id type x y z c_clusters c_clusters2
+
+# Identify particles above minimum size threshold
+variable       valid_cluster atom "c_clusters > 0 && c_cluster_count >= ${min_cluster_size}"
+group          nanoparticles dynamic ejected var v_valid_cluster every 1
+compute        nano_clusters nanoparticles chunk/atom c_clusters compress yes
+
+# Coordination number analysis
+compute        coord_total ejected coord/atom cutoff ${cluster_cutoff}
+compute        coord_ni ni coord/atom cutoff ${cluster_cutoff} 1
+compute        coord_ti ti coord/atom cutoff ${cluster_cutoff} 2
+
+# Shape and morphology metrics
+compute        gyration_clusters nanoparticles gyration/cluster c_clusters
+compute        asphericity nanoparticles gyration/cluster c_clusters shape
+compute        com_clusters nanoparticles com/cluster c_clusters
+
+# Voronoi analysis for interface identification and local structure
+compute        voro ejected voronoi/atom edge_length ${voronoi_edge_length}
+compute        voro_water water voronoi/atom edge_length ${voronoi_edge_length}
+compute        voro_volume ejected property/atom c_voro[1]
+compute        voro_water_vol water property/atom c_voro[1]
+
+# Write structural characterization data
+dump           structure nanoparticles custom 1 dump.phase4.structure.lammpstrj id type x y z c_clusters c_coord_total &
+               c_voro_volume c_asphericity
+
+# -----------------------------------------------------------------------
+# 4.2 THERMODYNAMIC ANALYSIS
+# -----------------------------------------------------------------------
+
+# Energy calculations
+compute        pe_atom all pe/atom
+compute        ke_atom all ke/atom
+compute        stress_atom all stress/atom NULL
+compute        energy_total all reduce sum c_pe_atom
+compute        energy_nano nanoparticles reduce sum c_pe_atom
+compute        energy_surface nanoparticles reduce sum c_pe_atom
+
+# Interface energy calculations
+compute        surface_atoms ejected custom/atom c_coord_total < 8
+group          surface dynamic ejected var c_surface_atoms every 1
+compute        surf_pe surface reduce sum c_pe_atom
+compute        surf_area surface reduce sum c_voro[1]
+
+# Formation energy analysis
+variable       formation_energy equal "c_energy_nano/count(nanoparticles)"
+variable       surface_energy equal "c_surf_pe/c_surf_area"
+
+# Output thermodynamic data
+fix            thermo_data all print 1 "Energy_Total: ${energy_total} Energy_Nano: ${energy_nano} &
+               Formation_Energy: ${formation_energy} Surface_Energy: ${surface_energy}" &
+               file thermodynamic_analysis.dat
+
+# -----------------------------------------------------------------------
+# 4.3 TEMPORAL EVOLUTION PREPARATION
+# -----------------------------------------------------------------------
+
+# This section prepares data for external visualization
+# Create a script to analyze all trajectory files from phases 1-3
+
+# First, let's compute all necessary properties for visualization
+compute        temp_atom all temp/atom
+compute        cluster_id ejected property/atom c_clusters
+variable       phase atom "c_coord_total < 4 ? 3 : (c_ke_atom > 0.5 ? 2 : 1)"  # 1=solid, 2=liquid, 3=gas
+
+# Dump complete property set for visualization pipeline
+dump           viz all custom 1 dump.phase4.visualization_prep.lammpstrj id type x y z vx vy vz &
+               c_pe_atom c_ke_atom c_temp_atom c_coord_total v_phase c_cluster_id
+
+# Write a marker file with essential parameters for the visualization script
+fix            viz_params all print 1 "cluster_cutoff: ${cluster_cutoff} &
+               min_cluster_size: ${min_cluster_size} &
+               total_atoms: $(count(all)) &
+               nanoparticle_atoms: $(count(nanoparticles)) &
+               num_clusters: $(count(clusters))" &
+               file visualization_parameters.dat
+
+# -----------------------------------------------------------------------
+# 4.4 STATISTICAL PROCESSING
+# -----------------------------------------------------------------------
+
+# Particle size distribution analysis
+compute        cluster_size nanoparticles chunk/atom c_clusters compress yes
+compute        size_stats nanoparticles property/chunk cluster_size count
+fix            size_dist all print 1 "c_size_stats" file particle_size_dist.dat title "# Cluster ID Size"
+
+# Composition analysis for each nanoparticle
+variable       is_ni atom "type == 1"
+variable       is_ti atom "type == 2"
+compute        comp_chunk nanoparticles chunk/atom c_clusters compress yes
+fix            comp_analysis nanoparticles ave/chunk 1 1 1 comp_chunk v_is_ni v_is_ti file composition_analysis.dat
+
+# Spatial distribution analysis
+compute        rdf_nano nanoparticles rdf ${rdf_bins} ${cluster_cutoff}*2
+fix            rdf_avg all ave/time 1 1 1 c_rdf_nano[*] file rdf_nanoparticles.dat mode vector
+
+# Crystallinity analysis
+compute        pattern nanoparticles xrd 1 1 1 2 2 1 c_clusters
+fix            xrd_patterns nanoparticles ave/time 1 1 1 c_pattern[*] file crystallinity_xrd.dat mode vector
+
+# -----------------------------------------------------------------------
+# GENERATE SUMMARY REPORT
+# -----------------------------------------------------------------------
+
+# System statistics
+variable       total_atoms equal "count(all)"
+variable       nano_atoms equal "count(nanoparticles)"
+variable       cluster_count equal "count(clusters)"
+variable       avg_size equal "count(nanoparticles)/count(clusters)"
+variable       percent_ejected equal "100.0*count(ejected)/count(nitinol)"
+variable       percent_clustered equal "100.0*count(nanoparticles)/count(ejected)"
+variable       ni_count equal "count(ni)"
+variable       ti_count equal "count(ti)"
+variable       ni_ti_ratio equal "count(ni)/count(ti)"
+
+# Output summary report
+print          "===== PHASE 4 ANALYSIS SUMMARY ====="
+print          "Total atoms in system: ${total_atoms}"
+print          "Total ejected atoms: $(count(ejected))"
+print          "Percent of nitinol ejected: ${percent_ejected}%"
+print          "Atoms in nanoparticles: ${nano_atoms}"
+print          "Percent of ejected material in clusters: ${percent_clustered}%"
+print          "Number of identified nanoparticles: ${cluster_count}"
+print          "Average nanoparticle size: ${avg_size} atoms"
+print          "Composition (Ni:Ti ratio): ${ni_ti_ratio}"
+print          "Average formation energy per atom: ${formation_energy} eV"
+print          "Average surface energy: ${surface_energy} eV/Å²"
+print          "===== ANALYSIS COMPLETE ====="
+
+# Generate Python post-processing script
+print          "# Python post-processing script for advanced analysis" file post_process.py
+print          "import numpy as np" file post_process.py append
+print          "import matplotlib.pyplot as plt" file post_process.py append
+print          "from scipy import stats" file post_process.py append
+print          "import os" file post_process.py append
+print          "" file post_process.py append
+print          "# Load particle size distribution" file post_process.py append
+print          "sizes = np.loadtxt('particle_size_dist.dat', skiprows=1, usecols=1)" file post_process.py append
+print          "# Histogram analysis" file post_process.py append
+print          "plt.figure(figsize=(10, 6))" file post_process.py append
+print          "plt.hist(sizes, bins=20)" file post_process.py append
+print          "plt.xlabel('Nanoparticle Size (atoms)')" file post_process.py append
+print          "plt.ylabel('Frequency')" file post_process.py append
+print          "plt.savefig('size_distribution.png')" file post_process.py append
+print          "" file post_process.py append
+print          "# Add code here for more advanced statistical analysis" file post_process.py append
+print          "# - Load composition data" file post_process.py append
+print          "# - Analyze crystallinity" file post_process.py append
+print          "# - Process RDF data" file post_process.py append
+print          "# - Correlation analysis" file post_process.py append
+print          "" file post_process.py append
+print          "print('Post-processing complete')" file post_process.py append
+
+# -----------------------------------------------------------------------
+# ANIMATION GENERATION GUIDANCE
+# -----------------------------------------------------------------------
+
+print          ""
+print          "===== ANIMATION GENERATION INSTRUCTIONS ====="
+print          "To create high-quality animations of the full simulation:"
+print          ""
+print          "1. Combine trajectory data from all phases:"
+print          "   - Phase 1: Equilibration (dump.phase1.*.lammpstrj)"
+print          "   - Phase 2: Ablation (dump.phase2.ablation.*.lammpstrj)"
+print          "   - Phase 3: Formation (dump.phase3.formation.*.lammpstrj)"
+print          ""
+print          "2. Use visualization software (OVITO recommended):"
+print          "   - Import combined trajectory"
+print          "   - Apply 'Identify Surface' modifier for nanoparticles"
+print          "   - Use 'Cluster Analysis' with cutoff ${cluster_cutoff}"
+print          "   - Color by phase variable or cluster ID"
+print          ""
+print          "3. For detailed nanoparticle analysis:"
+print          "   - Load 'dump.phase4.structure.lammpstrj'"
+print          "   - This file contains comprehensive structural data"
+print          ""
+print          "4. Run the provided Python script for statistical plots:"
+print          "   python post_process.py"
+print          ""
+print          "===== END OF INSTRUCTIONS ====="
