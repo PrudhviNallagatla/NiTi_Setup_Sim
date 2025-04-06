@@ -1,26 +1,11 @@
 {
-  "name": "NiTi Nanoparticle Simulation Environment",
+  "name": "LAMMPS DevContainer",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "..",
-    "args": {
-      // Add any build arguments if needed
-    }
+    "context": ".."
   },
-  "runArgs": [
-    "--gpus=all",
-    "--ipc=host",
-    "--shm-size=4g",
-    "--ulimit",
-    "memlock=-1:-1",
-    "--security-opt",
-    "seccomp=unconfined",
-    "-e",
-    "DISPLAY=${localEnv:DISPLAY}",
-    "-v",
-    "/tmp/.X11-unix:/tmp/.X11-unix"
-  ],
-  "forwardPorts": [8888, 8080, 8000, 6006, 8787, 3000, 8087],
+  "runArgs": ["--gpus=all", "--ipc=host", "--shm-size=1g"],
+  "forwardPorts": [8888, 8080, 8000],
   "customizations": {
     "vscode": {
       "extensions": [
@@ -37,11 +22,7 @@
         "tomoki1207.pdf",
         "mechatroner.rainbow-csv",
         "ms-toolsai.datawrangler",
-        "visualstudioexptteam.vscodeintellicode",
-        "streetsidesoftware.code-spell-checker",
-        "gruntfuggly.todo-tree",
-        "ms-azuretools.vscode-docker",
-        "auchenberg.vscode-browser-preview"
+        "visualstudioexptteam.vscodeintellicode"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
@@ -52,27 +33,14 @@
         },
         "python.defaultInterpreterPath": "/usr/bin/python3",
         "python.linting.enabled": true,
-        "editor.formatOnSave": true,
-        "remote.autoForwardPorts": true,
-        "remote.restoreForwardedPorts": true,
-        "jupyter.alwaysTrustNotebooks": true,
-        "jupyter.interactiveWindowMode": "perFile",
-        "files.eol": "\n",
-        "files.insertFinalNewline": true
+        "editor.formatOnSave": true
       }
     }
   },
   "remoteUser": "rimuru",
-  "postCreateCommand": "wget https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.sh -q && chmod +x cmake-3.28.3-linux-x86_64.sh && sudo ./cmake-3.28.3-linux-x86_64.sh --skip-license --prefix=/usr/local && rm cmake-3.28.3-linux-x86_64.sh && bash -c 'echo \"Container ready! Setting up environment...\" && /opt/scripts/fix_line_endings.sh && /opt/scripts/copy_potentials.sh && sudo apt-get update && sudo apt-get install -y x11-apps mesa-utils && echo \"Testing OpenGL support:\" && glxinfo | grep \"OpenGL vendor\" || echo \"OpenGL not available - GUI visualization may not work\"'",
-  "postStartCommand": "bash -c 'echo \"Running environment checks...\" && source /opt/scripts/detect_gpu.sh && echo \"⚙️ Line ending fix is available with command: fix-scripts\" && echo \"⚙️ Jupyter notebook available at: http://localhost:8888\"'",
+  "postCreateCommand": "echo 'Container is ready! GPU info:' && nvidia-smi",
   "mounts": [
     "source=${localWorkspaceFolder},target=/home/rimuru/workspace,type=bind,consistency=cached"
   ],
-  "workspaceFolder": "/home/rimuru/workspace",
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest",
-      "ppa": true
-    }
-  }
+  "workspaceFolder": "/home/rimuru/workspace"
 }
