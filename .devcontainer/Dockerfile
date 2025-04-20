@@ -1,5 +1,5 @@
-# Use a specific tag for reproducibility
-FROM nvcr.io/hpc/lammps:patch_15Jun2023
+# Use the latest CUDA Ubuntu image
+FROM nvidia/cuda:12.3.0-devel-ubuntu22.04
 
 ENV TZ=Asia/Kolkata
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -7,6 +7,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
+    python3-dev \
     python3-tk \
     libgl1-mesa-glx \
     libgl1-mesa-dev \
@@ -23,28 +24,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rsync \
     cmake \
     gfortran \
-    nvtop \
-    libhdf5-dev \
-    libnetcdf-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages with version pins (example)
-RUN pip3 install --no-cache-dir \
-    numpy==1.24.3 \
-    scipy==1.10.1 \
-    matplotlib==3.7.1 \
-    pandas==2.0.3 \
-    ase==3.22.1 \
-    ovito==3.9.1 \
-    freud-analysis==2.12.0 \
-    jupyter==1.0.0 \
-    ipykernel==6.24.0 \
-    scikit-learn==1.3.0 \
-    pyyaml==6.0.1 \
-    tqdm==4.65.0
-
-# Set environment variables for GPU/CPU fallback
-ENV KOKKOS_DEVICES="OpenMP,Cuda"
+# Install nvtop for GPU monitoring
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libudev-dev \
+    libdrm-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone https://github.com/Syllo/nvtop.git \
+    && mkdir -p nvtop/build && cd nvtop/build \
+    && cmake .. -DNVML_RETRIEVE_HEADER_ONLINE=True \
+    && make -j$(nproc) \
+    && make install \
+    && cd / && rm -rf nvtop
 
 # Create a non-root user with host-matching UID/GID
 ARG USERNAME=rimuru

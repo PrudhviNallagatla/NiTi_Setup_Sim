@@ -1,0 +1,166 @@
+LAMMPS (15 Jun 2023)
+KOKKOS mode is enabled (src/KOKKOS/kokkos.cpp:107)
+  will use up to 1 GPU(s) per node
+Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
+Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
+  using 1 OpenMP thread(s) per MPI task
+Lattice spacing in x,y,z = 3.01 3.01 3.01
+Created orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  1 by 1 by 1 MPI processor grid
+Created 15000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  create_atoms CPU = 0.006 seconds
+Created 15000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  create_atoms CPU = 0.007 seconds
+System init for delete_atoms ...
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.9
+  ghost atom cutoff = 8.9
+  binsize = 2.8, bins = 54 33 6
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional, copy from (2)
+      attributes: full, newton off
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (2) pair eam/fs/kk, perpetual
+      attributes: full, newton off, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+Deleted 15000 atoms, new total = 15000
+4250 atoms in group fixed_atoms
+6250 atoms in group thermo_atoms
+4750 atoms in group newtonian
+15000 atoms in group heat_atoms
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.9
+  ghost atom cutoff = 8.9
+  binsize = 2.8, bins = 54 33 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs/kk, perpetual
+      attributes: full, newton off, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 16.84 | 16.84 | 16.84 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -91161.71       0             -91161.71       778695.63    
+Loop time of 0.00193958 on 1 procs for 0 steps with 15000 atoms
+
+Setting up cg/kk style minimization ...
+  Unit style    : metal
+  Current step  : 0
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
+WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
+Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -91161.71       0             -91161.71       778695.63    
+         1   0             -91161.71       0             -91161.71       778695.63    
+Loop time of 0.0281719 on 1 procs for 1 steps with 15000 atoms
+
+110.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -91161.7104666123  -91161.7104666123  -91161.7104666124
+  Force two-norm initial, final = 1.9310501e-11 1.82313e-11
+  Force max component initial, final = 4.6104768e-13 4.5150909e-13
+  Final line search alpha, max atom move = 1 4.5150909e-13
+  Iterations, force evaluations = 1 2
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.021547   | 0.021547   | 0.021547   |   0.0 | 76.48
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0015946  | 0.0015946  | 0.0015946  |   0.0 |  5.66
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.005031   |            |       | 17.86
+
+Nlocal:          15000 ave       15000 max       15000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          26426 ave       26426 max       26426 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2700000
+Ave neighs/atom = 180
+Neighbor list builds = 0
+Dangerous builds = 0
+Setting up cg/kk style minimization ...
+  Unit style    : metal
+  Current step  : 1
+WARNING: Energy due to 3 extra global DOFs will be included in minimizer energies
+ (src/KOKKOS/min_kokkos.cpp:91)
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
+WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
+Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         1   0             -91161.71       0             -91161.71       778695.63      204531.76    
+         2   0             -91181.568      0             -91181.568      776779.58      204572.67    
+Loop time of 0.0283855 on 1 procs for 1 steps with 15000 atoms
+
+72.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -91161.7104666123  -91161.7104666123  -91181.5677425063
+  Force two-norm initial, final = 140583.1 140241.26
+  Force max component initial, final = 99407.267 99165.548
+  Final line search alpha, max atom move = 1.0059627e-09 9.975684e-05
+  Iterations, force evaluations = 1 1
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.015015   | 0.015015   | 0.015015   |   0.0 | 52.90
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00049385 | 0.00049385 | 0.00049385 |   0.0 |  1.74
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.01288    |            |       | 45.36
+
+Nlocal:          15000 ave       15000 max       15000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          26426 ave       26426 max       26426 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2700000
+Ave neighs/atom = 180
+Neighbor list builds = 0
+Dangerous builds = 0
+Changing box ...
+ERROR: Unrecognized fix style 'ttm' is part of the EXTRA-FIX package which is not enabled in this LAMMPS binary. (src/modify.cpp:921)
+Last command: fix             ttm all ttm ${nxgrid} ${nygrid} ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[20273,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

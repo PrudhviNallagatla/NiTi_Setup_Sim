@@ -1,0 +1,21 @@
+LAMMPS (15 Jun 2023)
+KOKKOS mode is enabled (src/KOKKOS/kokkos.cpp:107)
+  will use up to 1 GPU(s) per node
+Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
+Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
+  using 1 OpenMP thread(s) per MPI task
+Created orthogonal box = (-6 -6 -6) to (21.05 21.05 15.03)
+  1 by 1 by 1 MPI processor grid
+ERROR: Unknown command: newton_bond     on (src/input.cpp:303)
+Last command: newton_bond     on
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[4516,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

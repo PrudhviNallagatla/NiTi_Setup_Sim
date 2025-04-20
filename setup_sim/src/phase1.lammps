@@ -16,8 +16,8 @@ boundary        p p f        # Periodic in x/y, fixed in z
 atom_style      hybrid/kk full  # Kokkos version for full atom style
 
 # File path variables
-variable        potential_path string "/home/rimuru/workspace/formation_sim/inputs/Ni-Ti.eam.fs"
-variable        water_mol_path string "/home/rimuru/workspace/formation_sim/inputs/H2O.mol"
+variable        potential_path string "/home/rimuru/workspace/setup_sim/inputs/Ni-Ti.eam.fs"
+variable        water_mol_path string "/home/rimuru/workspace/setup_sim/inputs/H2O.mol"
 
 # Variables and constants
 variable        temp equal 300.0
@@ -47,7 +47,10 @@ variable        zhi_water equal ${zhi}+${water_pad}
 
 # Define simulation box
 region          box block ${xlo_water} ${xhi_water} ${ylo_water} ${yhi_water} ${zlo_water} ${zhi_water}
-create_box      3 box      # Type 1: Ni, Type 2: Ti, Type 3: Water (O and H will be types 3 and 4)
+create_box      4 box bond/types 1 angle/types 1   # Include bond and angle types
+
+newton          on on
+special_bonds   lj 0.0 0.0 0.0 coul 0.0 0.0 0.0
 
 # Create NiTi crystal
 region          nitinol block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi}
@@ -56,7 +59,7 @@ create_atoms    1 region nitinol
 
 # Convert alternating atoms to Ti (for B2 structure)
 group           ni type 1
-set             group ni type 1 fraction 0.5 123456
+set             group ni type/fraction 2 0.5 123456
 group           ti type 1
 set             group ti type 2
 
@@ -67,10 +70,28 @@ variable        spark_center_y equal (${yhi}+${ylo})/2
 region          spark_region cylinder z ${spark_center_x} ${spark_center_y} ${spark_radius} ${zhi} ${zhi} side in
 group           spark_atoms region spark_region
 
-# Create water molecules
+# Define water bonds and angles
+bond_style      harmonic/kk
+angle_style     harmonic/kk
+bond_coeff      1 450.0 0.9572   # O-H bond
+angle_coeff     1 55.0 104.52     # H-O-H angle
+
+# ALTERNATIVE WATER CREATION APPROACH
+# Replace the complex water creation code with molecular template
+
+# Define water molecule template - ensure this file exists
+molecule        h2o ${water_mol_path}
+
+# Create water molecules using the template with proper density
+# The density parameter automatically calculates the number of molecules needed
 region          water_region block ${xlo_water} ${xhi_water} ${ylo_water} ${yhi_water} ${zlo_water} ${zhi_water} side out
-molecule        h2o_mol ${water_mol_path}
-create_atoms    0 region water_region mol h2o_mol 45678 overlap 2.5  # Original: 2.0
+create_atoms    0 region water_region mol h2o ${water_density} 25367 overlap 2.0
+
+# Set water molecule charges
+group           oxygen type 3
+group           hydrogen type 4
+set             group oxygen charge -0.834
+set             group hydrogen charge 0.417
 
 # Remove any water molecules that overlap with nitinol
 delete_atoms    overlap 2.5 nitinol water_region mol yes  # Original: 2.0
@@ -99,12 +120,6 @@ pair_coeff      2 4 lj/cut/coul/long/kk 0.000 2.058
 # Long-range electrostatics
 kspace_style    pppm/kk 1.0e-3  # Original: 1.0e-4
 
-# Define water bonds and angles
-bond_style      harmonic/kk
-angle_style     harmonic/kk
-bond_coeff      1 450.0 0.9572   # O-H bond
-angle_coeff     1 55.0 104.52     # H-O-H angle
-
 # Set masses
 mass            1 58.6934     # Ni
 mass            2 47.867      # Ti
@@ -116,7 +131,7 @@ velocity        all create ${temp} 48249 rot yes dist gaussian
 
 # EQUILIBRATION PROTOCOL
 
-variable        outdir string "/home/rimuru/workspace/formation_sim/data/phase1"
+variable        outdir string "/home/rimuru/workspace/setup_sim/data/phase1"
 shell           "mkdir -p ${outdir}"
 
 # 1. Energy Minimization

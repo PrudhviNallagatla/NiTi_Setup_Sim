@@ -1,11 +1,14 @@
 {
-  "name": "LAMMPS DevContainer",
+  "name": "CUDA Dev Container",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
   },
   "runArgs": ["--gpus=all", "--ipc=host", "--shm-size=1g"],
   "forwardPorts": [8888, 8080, 8000, 8087],
+  "features": {
+    "ghcr.io/devcontainers/features/nvidia-cuda:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -18,10 +21,8 @@
         "eamodio.gitlens",
         "github.vscode-pull-request-github",
         "redhat.vscode-yaml",
-        "thfriedrich.lammps",
         "tomoki1207.pdf",
         "mechatroner.rainbow-csv",
-        "ms-toolsai.datawrangler",
         "visualstudioexptteam.vscodeintellicode"
       ],
       "settings": {
@@ -38,7 +39,7 @@
     }
   },
   "remoteUser": "rimuru",
-  "postCreateCommand": "echo 'Container is ready! GPU info:' && nvidia-smi",
+  "postCreateCommand": "apt-get update && echo 'Container is ready! GPU info:' && nvidia-smi",
   "mounts": [
     "source=${localWorkspaceFolder},target=/home/rimuru/workspace,type=bind,consistency=cached"
   ],

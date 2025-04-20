@@ -1,0 +1,293 @@
+LAMMPS (15 Jun 2023)
+KOKKOS mode is enabled (src/KOKKOS/kokkos.cpp:107)
+  will use up to 1 GPU(s) per node
+  using 1 OpenMP thread(s) per MPI task
+package kokkos
+package kokkos cuda/aware on neigh full comm device binsize 2.8
+# MD simulation of EDM on NiTi (Nitinol) with Two-Temperature Model
+# REDUCED VERSION FOR TESTING ON GTX 1650
+
+# --- Variables and parameters (REDUCED) ---
+variable        temp equal 300.0       # Initial temperature (K)
+variable        seed equal 12345       # Random seed
+variable        discharge_time equal 0.002   # Reduced discharge time (ns) - was 0.01
+variable        total_time equal 0.01   # Reduced total time (ns) - was 0.05
+variable        timestep equal 0.001   # Timestep (ps)
+variable        thermo_freq equal 50   # Increased output frequency - was 20
+
+# Gaussian heat source parameters
+variable        power_density equal 1.4   # Power density (GeV/ps)
+variable        heat_width equal 10       # Width of heating area (nm)
+variable        heat_height equal 5       # Height of heating area (nm)
+variable        k_factor equal 0.01       # Heat source concentration factor
+
+# Convert discharge and total time to timesteps
+variable        discharge_steps equal ${discharge_time}*1000000*${timestep}
+variable        discharge_steps equal 0.002*1000000*${timestep}
+variable        discharge_steps equal 0.002*1000000*0.001
+variable        total_steps equal ${total_time}*1000000*${timestep}
+variable        total_steps equal 0.01*1000000*${timestep}
+variable        total_steps equal 0.01*1000000*0.001
+
+# --- Initialization ---
+units           metal
+dimension       3
+# Use periodic boundaries in all directions during minimization
+boundary        p p p          # Changed from p p f to avoid lost atoms
+atom_style      atomic
+
+# --- Create lattice and simulation box (REDUCED SIZE) ---
+variable        x_size equal 50         # Reduced from 100
+variable        y_size equal 30         # Reduced from 50
+variable        z_size equal 5
+
+# Create NiTi B2 structure (ordered BCC structure like CsCl)
+lattice         custom 3.01                 a1 1.0 0.0 0.0                 a2 0.0 1.0 0.0                 a3 0.0 0.0 1.0                 basis 0.0 0.0 0.0                 basis 0.5 0.5 0.5
+Lattice spacing in x,y,z = 3.01 3.01 3.01
+
+region          box block 0 ${x_size} 0 ${y_size} 0 ${z_size}
+region          box block 0 50 0 ${y_size} 0 ${z_size}
+region          box block 0 50 0 30 0 ${z_size}
+region          box block 0 50 0 30 0 5
+create_box      2 box
+Created orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  1 by 1 by 1 MPI processor grid
+
+# --- Define masses for atom types ---
+mass            1 58.6934  # Mass of Ni (amu)
+mass            2 47.867   # Mass of Ti (amu)
+
+# --- Define Interatomic Potential ---
+pair_style      eam/fs/kk
+pair_coeff      * * /home/rimuru/workspace/ttm_trail/Ni-Ti.eam.fs Ni Ti
+
+create_atoms    1 box basis 1 1    # Type 1 = Ni atoms at (0,0,0)
+Created 15000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  create_atoms CPU = 0.006 seconds
+create_atoms    2 box basis 2 2    # Type 2 = Ti atoms at (0.5,0.5,0.5)
+Created 15000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
+  create_atoms CPU = 0.007 seconds
+
+# --- Use a smaller overlap distance for deletion ---
+delete_atoms overlap 1.0 all all # Reduced from 1.3 to avoid excessive deletion
+System init for delete_atoms ...
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.9
+  ghost atom cutoff = 8.9
+  binsize = 2.8, bins = 54 33 6
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional, copy from (2)
+      attributes: full, newton off
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (2) pair eam/fs/kk, perpetual
+      attributes: full, newton off, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+Deleted 15000 atoms, new total = 15000
+
+# --- Define regions ---
+region          fixed_region block 0 ${x_size} 0 8 0 ${z_size}  # Reduced from 15
+region          fixed_region block 0 50 0 8 0 ${z_size}  
+region          fixed_region block 0 50 0 8 0 5  
+group           fixed_atoms region fixed_region
+4250 atoms in group fixed_atoms
+
+region          thermo_region block 0 ${x_size} 8 20 0 ${z_size} # Reduced from 35
+region          thermo_region block 0 50 8 20 0 ${z_size} 
+region          thermo_region block 0 50 8 20 0 5 
+group           thermo_atoms region thermo_region
+6250 atoms in group thermo_atoms
+
+group           newtonian subtract all fixed_atoms thermo_atoms
+4750 atoms in group newtonian
+
+variable        center_x equal ${x_size}/2
+variable        center_x equal 50/2
+variable        center_y equal ${y_size}/2
+variable        center_y equal 30/2
+variable        heat_width_half equal ${heat_width}*10/2
+variable        heat_width_half equal 10*10/2
+variable        heat_height_half equal ${heat_height}*10/2
+variable        heat_height_half equal 5*10/2
+
+variable        x1 equal ${center_x}-${heat_width_half}
+variable        x1 equal 25-${heat_width_half}
+variable        x1 equal 25-50
+variable        x2 equal ${center_x}+${heat_width_half}
+variable        x2 equal 25+${heat_width_half}
+variable        x2 equal 25+50
+variable        y1 equal ${center_y}-${heat_height_half}
+variable        y1 equal 15-${heat_height_half}
+variable        y1 equal 15-25
+variable        y2 equal ${center_y}+${heat_height_half}
+variable        y2 equal 15+${heat_height_half}
+variable        y2 equal 15+25
+
+region          heat_region block ${x1} ${x2} ${y1} ${y2} 0 ${z_size}
+region          heat_region block -25 ${x2} ${y1} ${y2} 0 ${z_size}
+region          heat_region block -25 75 ${y1} ${y2} 0 ${z_size}
+region          heat_region block -25 75 -10 ${y2} 0 ${z_size}
+region          heat_region block -25 75 -10 40 0 ${z_size}
+region          heat_region block -25 75 -10 40 0 5
+group           heat_atoms region heat_region
+15000 atoms in group heat_atoms
+
+# --- Setup minimization with careful approach ---
+run             0 post no
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.9
+  ghost atom cutoff = 8.9
+  binsize = 2.8, bins = 54 33 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs/kk, perpetual
+      attributes: full, newton off, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+Per MPI rank memory allocation (min/avg/max) = 16.84 | 16.84 | 16.84 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -91161.71       0             -91161.71       778695.63    
+Loop time of 0.00193958 on 1 procs for 0 steps with 15000 atoms
+
+
+# More frequent neighbor list updates
+neigh_modify delay 0 every 1 check yes
+
+# --- REDUCED MINIMIZATION SEQUENCE ---
+# First minimize with fixed box to resolve overlaps
+fix             1 all nve/limit 0.01
+minimize        1.0e-3 1.0e-3 500 5000  # Reduced iterations and increased tolerance
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
+WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
+Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -91161.71       0             -91161.71       778695.63    
+         1   0             -91161.71       0             -91161.71       778695.63    
+Loop time of 0.0281719 on 1 procs for 1 steps with 15000 atoms
+
+110.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -91161.7104666123  -91161.7104666123  -91161.7104666124
+  Force two-norm initial, final = 1.9310501e-11 1.82313e-11
+  Force max component initial, final = 4.6104768e-13 4.5150909e-13
+  Final line search alpha, max atom move = 1 4.5150909e-13
+  Iterations, force evaluations = 1 2
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.021547   | 0.021547   | 0.021547   |   0.0 | 76.48
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0015946  | 0.0015946  | 0.0015946  |   0.0 |  5.66
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.005031   |            |       | 17.86
+
+Nlocal:          15000 ave       15000 max       15000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          26426 ave       26426 max       26426 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2700000
+Ave neighs/atom = 180
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix           1
+
+# Then relax box dimensions with reduced vmax
+fix             1 all box/relax x 0.0 y 0.0 vmax 0.0001
+minimize        1.0e-3 1.0e-3 500 5000  # Reduced iterations and increased tolerance
+WARNING: Energy due to 3 extra global DOFs will be included in minimizer energies
+ (src/KOKKOS/min_kokkos.cpp:91)
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
+WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
+Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         1   0             -91161.71       0             -91161.71       778695.63      204531.76    
+         2   0             -91181.568      0             -91181.568      776779.58      204572.67    
+Loop time of 0.0283855 on 1 procs for 1 steps with 15000 atoms
+
+72.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -91161.7104666123  -91161.7104666123  -91181.5677425063
+  Force two-norm initial, final = 140583.1 140241.26
+  Force max component initial, final = 99407.267 99165.548
+  Final line search alpha, max atom move = 1.0059627e-09 9.975684e-05
+  Iterations, force evaluations = 1 1
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.015015   | 0.015015   | 0.015015   |   0.0 | 52.90
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00049385 | 0.00049385 | 0.00049385 |   0.0 |  1.74
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.01288    |            |       | 45.36
+
+Nlocal:          15000 ave       15000 max       15000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          26426 ave       26426 max       26426 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2700000
+Ave neighs/atom = 180
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix           1
+
+# --- Switch to fixed Z boundary after minimization ---
+change_box      all boundary p p f
+Changing box ...
+
+# --- Initialize velocities AFTER minimization ---
+velocity        all create ${temp} ${seed} dist gaussian
+velocity        all create 300 ${seed} dist gaussian
+velocity        all create 300 12345 dist gaussian
+
+# --- TTM Settings with NiTi-specific parameters (REDUCED GRID) ---
+variable        nxgrid equal 4        # Reduced from 5
+variable        nygrid equal 2        # Reduced from 3
+variable        nzgrid equal 1
+
+# TTM parameters for NiTi (adjusted based on paper recommendations)
+variable        el_heat_cap equal 3.5e-7     # Electronic specific heat (eV/Å³/K)
+variable        el_cond equal 6.8e-10        # Electronic thermal conductivity (eV/ps/Å/K)
+variable        el_ph_coup equal 1.2e-10     # Electron-phonon coupling (eV/ps/Å³/K)
+variable        el_temp equal 300.0          # Initial electronic temperature (K)
+
+# Define 3D grid for TTM
+fix             ttm all ttm ${nxgrid} ${nygrid} ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 ${nygrid} ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 2 ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 2 1                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 2 1                 300 ${el_heat_cap} ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 2 1                 300 3.5e-07 ${el_cond} ${el_ph_coup}
+fix             ttm all ttm 4 2 1                 300 3.5e-07 6.8e-10 ${el_ph_coup}
+fix             ttm all ttm 4 2 1                 300 3.5e-07 6.8e-10 1.2e-10
+ERROR: Unrecognized fix style 'ttm' is part of the EXTRA-FIX package which is not enabled in this LAMMPS binary. (src/modify.cpp:921)
+Last command: fix             ttm all ttm ${nxgrid} ${nygrid} ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
