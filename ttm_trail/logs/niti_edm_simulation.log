@@ -1,36 +1,50 @@
-LAMMPS (15 Jun 2023)
-KOKKOS mode is enabled (src/KOKKOS/kokkos.cpp:107)
-  will use up to 1 GPU(s) per node
-Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
-Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability 7.0 on device with compute capability 7.5 , this will likely reduce potential performance.
-  using 1 OpenMP thread(s) per MPI task
+/opt/deepmd-kit/install/bin/lmp: Relink `/usr/local/lib/python3.10/dist-packages/tensorflow/libtensorflow_framework.so.2' with `/lib/x86_64-linux-gnu/libz.so.1' for IFUNC symbol `crc32_z'
+/opt/deepmd-kit/install/bin/lmp: Relink `/usr/local/lib/python3.10/dist-packages/tensorflow/libtensorflow_framework.so.2' with `/lib/x86_64-linux-gnu/libz.so.1' for IFUNC symbol `crc32_z'
+/opt/deepmd-kit/install/bin/lmp: Relink `/usr/local/lib/python3.10/dist-packages/tensorflow/libtensorflow_framework.so.2' with `/lib/x86_64-linux-gnu/libz.so.1' for IFUNC symbol `crc32_z'
+/opt/deepmd-kit/install/bin/lmp: Relink `/usr/local/lib/python3.10/dist-packages/tensorflow/libtensorflow_framework.so.2' with `/lib/x86_64-linux-gnu/libz.so.1' for IFUNC symbol `crc32_z'
+2025-04-21 06:45:28.625014: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-04-21 06:45:28.625015: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-04-21 06:45:28.625014: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-04-21 06:45:28.625069: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-04-21 06:45:28.753297: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-04-21 06:45:28.753332: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-04-21 06:45:28.753336: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-04-21 06:45:28.753350: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-04-21 06:45:28.788219: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-21 06:45:28.788217: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-21 06:45:28.788244: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-21 06:45:28.788259: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+WARNING on proc 0: Cannot open log.lammps for writing: Permission denied (src/lammps.cpp:497)
+LAMMPS (2 Aug 2023)
+  using 4 OpenMP thread(s) per MPI task
+Loaded 0 plugins from /opt/deepmd-kit/source/lmp
 Lattice spacing in x,y,z = 3.01 3.01 3.01
 Created orthogonal box = (0 0 0) to (150.5 90.3 15.05)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
 Created 15000 atoms
   using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
-  create_atoms CPU = 0.006 seconds
+  create_atoms CPU = 0.003 seconds
 Created 15000 atoms
   using lattice units in orthogonal box = (0 0 0) to (150.5 90.3 15.05)
-  create_atoms CPU = 0.007 seconds
+  create_atoms CPU = 0.001 seconds
 System init for delete_atoms ...
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 8.9
   ghost atom cutoff = 8.9
-  binsize = 2.8, bins = 54 33 6
+  binsize = 4.45, bins = 34 21 4
   2 neighbor lists, perpetual/occasional/extra = 1 1 0
-  (1) command delete_atoms, occasional, copy from (2)
-      attributes: full, newton off
-      pair build: copy/kk/device
-      stencil: none
-      bin: none
-  (2) pair eam/fs/kk, perpetual
-      attributes: full, newton off, kokkos_device
-      pair build: full/bin/kk/device
+  (1) command delete_atoms, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
       stencil: full/bin/3d
-      bin: kk/device
+      bin: standard
+  (2) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
 Deleted 15000 atoms, new total = 15000
 4250 atoms in group fixed_atoms
 6250 atoms in group thermo_atoms
@@ -42,86 +56,80 @@ Neighbor list info ...
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 8.9
   ghost atom cutoff = 8.9
-  binsize = 2.8, bins = 54 33 6
+  binsize = 4.45, bins = 34 21 4
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair eam/fs/kk, perpetual
-      attributes: full, newton off, kokkos_device
-      pair build: full/bin/kk/device
-      stencil: full/bin/3d
-      bin: kk/device
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
 Setting up Verlet run ...
   Unit style    : metal
   Current step  : 0
   Time step     : 0.001
-Per MPI rank memory allocation (min/avg/max) = 16.84 | 16.84 | 16.84 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 12.66 | 12.66 | 12.66 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0             -91161.71       0             -91161.71       778695.63    
-Loop time of 0.00193958 on 1 procs for 0 steps with 15000 atoms
+Loop time of 3.83e-06 on 16 procs for 0 steps with 15000 atoms
 
-Setting up cg/kk style minimization ...
+Setting up cg style minimization ...
   Unit style    : metal
   Current step  : 0
-WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
-WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
-Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 14.91 | 14.91 | 14.91 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0             -91161.71       0             -91161.71       778695.63    
          1   0             -91161.71       0             -91161.71       778695.63    
-Loop time of 0.0281719 on 1 procs for 1 steps with 15000 atoms
+Loop time of 0.0676348 on 16 procs for 1 steps with 15000 atoms
 
-110.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+101.1% CPU use with 4 MPI tasks x 4 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-     -91161.7104666123  -91161.7104666123  -91161.7104666124
-  Force two-norm initial, final = 1.9310501e-11 1.82313e-11
-  Force max component initial, final = 4.6104768e-13 4.5150909e-13
-  Final line search alpha, max atom move = 1 4.5150909e-13
+     -91161.7104664959  -91161.7104664959  -91161.7104664959
+  Force two-norm initial, final = 1.9293661e-11 1.83355e-11
+  Force max component initial, final = 4.6251935e-13 4.4976457e-13
+  Final line search alpha, max atom move = 1 4.4976457e-13
   Iterations, force evaluations = 1 2
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.021547   | 0.021547   | 0.021547   |   0.0 | 76.48
+Pair    | 0.053406   | 0.058453   | 0.065856   |   1.9 | 86.42
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0015946  | 0.0015946  | 0.0015946  |   0.0 |  5.66
+Comm    | 0.0010821  | 0.008483   | 0.01353    |   5.0 | 12.54
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.005031   |            |       | 17.86
+Other   |            | 0.0006988  |            |       |  1.03
 
-Nlocal:          15000 ave       15000 max       15000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          26426 ave       26426 max       26426 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:              0 ave           0 max           0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           3750 ave        3750 max        3750 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           9411 ave        9411 max        9411 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         337500 ave      337675 max      337325 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 2700000
-Ave neighs/atom = 180
+Total # of neighbors = 1350000
+Ave neighs/atom = 90
 Neighbor list builds = 0
 Dangerous builds = 0
-Setting up cg/kk style minimization ...
+Setting up cg style minimization ...
   Unit style    : metal
   Current step  : 1
 WARNING: Energy due to 3 extra global DOFs will be included in minimizer energies
- (src/KOKKOS/min_kokkos.cpp:91)
-WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to classic exchange/border communication (src/KOKKOS/comm_kokkos.cpp:666)
-WARNING: Fix with atom-based arrays not compatible with Kokkos sorting on device, switching to classic host sorting (src/KOKKOS/atom_kokkos.cpp:178)
-Per MPI rank memory allocation (min/avg/max) = 23.2 | 23.2 | 23.2 Mbytes
+ (src/min.cpp:225)
+Per MPI rank memory allocation (min/avg/max) = 14.91 | 14.91 | 14.91 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
          1   0             -91161.71       0             -91161.71       778695.63      204531.76    
          2   0             -91181.568      0             -91181.568      776779.58      204572.67    
-Loop time of 0.0283855 on 1 procs for 1 steps with 15000 atoms
+Loop time of 0.0478443 on 16 procs for 1 steps with 15000 atoms
 
-72.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+104.8% CPU use with 4 MPI tasks x 4 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-     -91161.7104666123  -91161.7104666123  -91181.5677425063
+     -91161.7104664959  -91161.7104664959  -91181.5677426993
   Force two-norm initial, final = 140583.1 140241.26
   Force max component initial, final = 99407.267 99165.548
   Final line search alpha, max atom move = 1.0059627e-09 9.975684e-05
@@ -130,37 +138,158 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.015015   | 0.015015   | 0.015015   |   0.0 | 52.90
+Pair    | 0.040373   | 0.042065   | 0.043403   |   0.6 | 87.92
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00049385 | 0.00049385 | 0.00049385 |   0.0 |  1.74
+Comm    | 0.0033041  | 0.0046379  | 0.006322   |   1.7 |  9.69
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.01288    |            |       | 45.36
+Other   |            | 0.001141   |            |       |  2.38
 
-Nlocal:          15000 ave       15000 max       15000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          26426 ave       26426 max       26426 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:              0 ave           0 max           0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:      2.7e+06 ave     2.7e+06 max     2.7e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           3750 ave        3750 max        3750 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           9411 ave        9411 max        9411 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         337500 ave      337682 max      337318 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 2700000
-Ave neighs/atom = 180
+Total # of neighbors = 1350000
+Ave neighs/atom = 90
 Neighbor list builds = 0
 Dangerous builds = 0
 Changing box ...
-ERROR: Unrecognized fix style 'ttm' is part of the EXTRA-FIX package which is not enabled in this LAMMPS binary. (src/modify.cpp:921)
-Last command: fix             ttm all ttm ${nxgrid} ${nygrid} ${nzgrid}                 ${el_temp} ${el_heat_cap} ${el_cond} ${el_ph_coup}
---------------------------------------------------------------------------
-Primary job  terminated normally, but 1 process returned
-a non-zero exit code. Per user-direction, the job has been aborted.
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-mpirun detected that one or more processes exited with non-zero status, thus causing
-the job to be terminated. The first process to do so was:
+Equilibrating system for 200 steps
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.9
+  ghost atom cutoff = 8.9
+  binsize = 4.45, bins = 34 21 4
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute centro/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 15.43 | 15.43 | 15.43 Mbytes
+   Step          Time           Temp      c_temp_newtonian  c_temp_heat  
+         2   0              300            299.41079      300          
+        50   0.048          175.79279      119.94451      175.79279    
+       100   0.098          220.40745      173.96953      220.40745    
+       150   0.148          201.98185      145.18019      201.98185    
+       200   0.198          216.37926      151.53594      216.37926    
+       202   0.2            217.61713      152.81426      217.61713    
+Loop time of 4.63411 on 16 procs for 200 steps with 15000 atoms
 
-  Process name: [[20273,1],0]
-  Exit code:    1
---------------------------------------------------------------------------
+Performance: 3.729 ns/day, 6.436 hours/ns, 43.158 timesteps/s, 647.373 katom-step/s
+104.8% CPU use with 4 MPI tasks x 4 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.9791     | 4.0341     | 4.0839     |   2.2 | 87.05
+Neigh   | 0.010111   | 0.011906   | 0.014279   |   1.4 |  0.26
+Comm    | 0.40275    | 0.45126    | 0.50249    |   6.2 |  9.74
+Output  | 0.00035011 | 0.00041157 | 0.00058965 |   0.0 |  0.01
+Modify  | 0.12001    | 0.12078    | 0.12151    |   0.2 |  2.61
+Other   |            | 0.01562    |            |       |  0.34
+
+Nlocal:           3750 ave        3814 max        3681 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:         9427.5 ave        9480 max        9377 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:         371386 ave      375038 max      369099 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+FullNghs:            0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1485546
+Ave neighs/atom = 99.0364
+Neighbor list builds = 1
+Dangerous builds = 0
+Starting discharge phase: 2 steps (0.002 ns)
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 202
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 15.43 | 15.43 | 15.43 Mbytes
+   Step          Time           Temp      c_temp_newtonian  c_temp_heat  
+       202   0.2            217.61713      152.81426      217.61713    
+       204   0.202          218.35766      153.44301      218.35766    
+Loop time of 0.04074 on 16 procs for 2 steps with 15000 atoms
+
+Performance: 4.242 ns/day, 5.658 hours/ns, 49.092 timesteps/s, 736.376 katom-step/s
+104.8% CPU use with 4 MPI tasks x 4 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.03047    | 0.033307   | 0.036155   |   1.5 | 81.75
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0004228  | 0.003265   | 0.006102   |   4.9 |  8.01
+Output  | 5.762e-05  | 8.2089e-05 | 0.0001534  |   0.0 |  0.20
+Modify  | 0.0038521  | 0.0038711  | 0.0038894  |   0.0 |  9.50
+Other   |            | 0.0002149  |            |       |  0.53
+
+Nlocal:           3750 ave        3796 max        3702 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:           9443 ave        9467 max        9409 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:         373178 ave      376629 max      368963 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+FullNghs:            0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1492712
+Ave neighs/atom = 99.514133
+Neighbor list builds = 0
+Dangerous builds = 0
+Starting cooling phase
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 204
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 15.43 | 15.43 | 15.43 Mbytes
+   Step          Time           Temp      c_temp_newtonian  c_temp_heat  
+       204   0.202          218.35766      153.44301      218.35766    
+       212   0.21           214.91491      147.68119      214.91491    
+Loop time of 0.194473 on 16 procs for 8 steps with 15000 atoms
+
+Performance: 3.554 ns/day, 6.753 hours/ns, 41.137 timesteps/s, 617.053 katom-step/s
+104.8% CPU use with 4 MPI tasks x 4 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.16625    | 0.1724     | 0.17529    |   0.9 | 88.65
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.013822   | 0.016712   | 0.02287    |   2.8 |  8.59
+Output  | 6.0768e-05 | 7.0451e-05 | 9.9308e-05 |   0.0 |  0.04
+Modify  | 0.0046504  | 0.0046888  | 0.0047274  |   0.1 |  2.41
+Other   |            | 0.0006018  |            |       |  0.31
+
+Nlocal:           3750 ave        3792 max        3703 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:           9443 ave        9468 max        9409 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Neighs:         373240 ave      377262 max      368923 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+FullNghs:            0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1492958
+Ave neighs/atom = 99.530533
+Neighbor list builds = 0
+Dangerous builds = 0
+Discharge time: 0.002 ns
+Total simulation time: 0.01 ns
+Max temperature reached: 283.81022062988017751 K
+Total wall time: 0:00:05
